@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+# Initialize and migrate the SQLite database before Gunicorn forks workers.
+python -c 'from pocketkid import create_app; create_app()'
+
+exec gunicorn \
+  --workers 2 \
+  --bind 0.0.0.0:8000 \
+  --access-logfile - \
+  --error-logfile - \
+  wsgi:app
