@@ -317,6 +317,34 @@ class NegativeBalanceTests(unittest.TestCase):
                 self.assertIn(b"Debt", response.data)
                 self.assertIn(b"\xe2\x82\xac -1.00", response.data)
 
+    def test_balance_below_limit_shows_withdrawal_warning(self):
+        parent_id, child_id = self.seed_wallet("-900.00", "0.00")
+
+        self.login_as(child_id)
+        child_response = self.client.get("/dashboard")
+        self.assertEqual(child_response.status_code, 200)
+        self.assertIn(b"Overdraft limit exceeded by \xe2\x82\xac 900.00.", child_response.data)
+        self.assertIn(b"Further withdrawals are blocked.", child_response.data)
+
+        self.login_as(parent_id)
+        parent_response = self.client.get(f"/parent/child/{child_id}")
+        self.assertEqual(parent_response.status_code, 200)
+        self.assertIn(b"Overdraft limit exceeded by \xe2\x82\xac 900.00.", parent_response.data)
+        self.assertIn(b"Further withdrawals are blocked.", parent_response.data)
+
+    def test_balance_at_limit_does_not_show_withdrawal_warning(self):
+        parent_id, child_id = self.seed_wallet("-10.00", "-10.00")
+
+        self.login_as(child_id)
+        child_response = self.client.get("/dashboard")
+        self.assertEqual(child_response.status_code, 200)
+        self.assertNotIn(b"Further withdrawals are blocked.", child_response.data)
+
+        self.login_as(parent_id)
+        parent_response = self.client.get(f"/parent/child/{child_id}")
+        self.assertEqual(parent_response.status_code, 200)
+        self.assertNotIn(b"Further withdrawals are blocked.", parent_response.data)
+
 
 if __name__ == "__main__":
     unittest.main()
