@@ -468,8 +468,11 @@ if (notifyToggle && notifyPanel && notifyList && notifyEmpty && notifyBadge) {
 const pushToggleButton = document.getElementById('push-toggle-btn');
 const pushRegisterButton = document.getElementById('push-register-btn');
 const pushRegisterStatus = document.getElementById('push-register-status');
+const pushSettings = document.getElementById('push-settings');
 
-if (pushToggleButton && pushRegisterButton && pushRegisterStatus) {
+if (pushToggleButton && pushRegisterButton && pushRegisterStatus && pushSettings) {
+  const pushText = pushSettings.dataset;
+
   const updatePushUI = async () => {
     const pref = getPushPreference();
     const permission = ('Notification' in window) ? Notification.permission : 'denied';
@@ -484,29 +487,30 @@ if (pushToggleButton && pushRegisterButton && pushRegisterStatus) {
           const data = await response.json();
           const active = Number(data.activeSubscriptions || 0);
           if (active > 0) {
-            statusText = `✓ Attive (${active} subscription${active > 1 ? 's' : ''})`;
+            const subscriptionLabel = active === 1 ? pushText.subscription : pushText.subscriptions;
+            statusText = `✓ ${pushText.statusActive} (${active} ${subscriptionLabel})`;
             isEnabled = true;
           } else {
-            statusText = '⚠ Permesso concesso, attesa registrazione...';
+            statusText = `⚠ ${pushText.statusRegistrationPending}`;
           }
         } else {
-          statusText = '⚠ Impossibile verificare lo stato';
+          statusText = `⚠ ${pushText.statusCheckFailed}`;
         }
       } catch (e) {
-        statusText = '⚠ Errore di connessione';
+        statusText = `⚠ ${pushText.statusConnectionError}`;
       }
     } else if (permission === 'denied') {
-      statusText = '✗ Bloccate dal browser (controlla impostazioni browser)';
+      statusText = `✗ ${pushText.statusBrowserBlocked}`;
       isEnabled = false;
     } else if (pref === PUSH_PREF_DISABLED) {
-      statusText = '○ Disattivate (clicca per attivare)';
+      statusText = `○ ${pushText.statusDisabled}`;
       isEnabled = false;
     } else {
-      statusText = '○ Non configurate (clicca per attivare)';
+      statusText = `○ ${pushText.statusNotConfigured}`;
       isEnabled = false;
     }
     
-    pushToggleButton.textContent = isEnabled ? 'Disattiva Notifiche Push' : 'Attiva Notifiche Push';
+    pushToggleButton.textContent = isEnabled ? pushText.disableButton : pushText.enableButton;
     pushToggleButton.className = isEnabled ? 'btn btn-warning' : 'btn';
     pushRegisterStatus.textContent = statusText;
     pushRegisterStatus.classList.toggle('error-text', permission === 'denied');
@@ -521,21 +525,21 @@ if (pushToggleButton && pushRegisterButton && pushRegisterStatus) {
       if (permission === 'granted' && pref === PUSH_PREF_ENABLED) {
         // Disable notifications
         await unsubscribeWebPush();
-        pushRegisterStatus.textContent = '○ Notifiche disattivate';
+        pushRegisterStatus.textContent = `○ ${pushText.disabled}`;
       } else {
         // Enable notifications
         const success = await ensurePushPermissionAndSubscribe(true);
         if (success) {
-          pushRegisterStatus.textContent = '✓ Notifiche attivate con successo';
+          pushRegisterStatus.textContent = `✓ ${pushText.enabledSuccess}`;
         } else {
-          pushRegisterStatus.textContent = '✗ Impossibile attivare le notifiche';
+          pushRegisterStatus.textContent = `✗ ${pushText.enableFailed}`;
           pushRegisterStatus.classList.add('error-text');
         }
       }
       
       setTimeout(updatePushUI, 500);
     } catch (error) {
-      pushRegisterStatus.textContent = '✗ Errore durante l\'operazione';
+      pushRegisterStatus.textContent = `✗ ${pushText.operationError}`;
       pushRegisterStatus.classList.add('error-text');
       console.debug('push toggle failed', error);
     } finally {
@@ -545,13 +549,13 @@ if (pushToggleButton && pushRegisterButton && pushRegisterStatus) {
 
   pushRegisterButton.addEventListener('click', async () => {
     pushRegisterButton.disabled = true;
-    pushRegisterStatus.textContent = 'Verifica in corso...';
+    pushRegisterStatus.textContent = pushText.statusChecking;
 
     try {
       await ensurePushPermissionAndSubscribe(true);
       setTimeout(updatePushUI, 500);
     } catch (error) {
-      pushRegisterStatus.textContent = '✗ Verifica fallita';
+      pushRegisterStatus.textContent = `✗ ${pushText.verificationFailed}`;
       pushRegisterStatus.classList.add('error-text');
       console.debug('manual push registration failed', error);
     } finally {

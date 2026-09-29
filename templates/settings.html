@@ -11,8 +11,9 @@
     <input type="hidden" name="action" value="language">
     <label>{{ _('preferred_language') }}
       <select name="preferred_language">
-        <option value="en" {% if user.preferred_language == 'en' %}selected{% endif %}>{{ _('lang_en') }}</option>
-        <option value="it" {% if user.preferred_language == 'it' %}selected{% endif %}>{{ _('lang_it') }}</option>
+        {% for lang in available_languages %}
+        <option value="{{ lang }}" {% if user.preferred_language == lang %}selected{% endif %}>{{ _('lang_' ~ lang) }}</option>
+        {% endfor %}
       </select>
     </label>
     <button class="btn" type="submit">{{ _('save_language') }}</button>
@@ -45,13 +46,32 @@
   </div>
 </section>
 
-<section class="card">
+<section
+  class="card"
+  id="push-settings"
+  data-status-active="{{ _('push_status_active') }}"
+  data-subscription="{{ _('push_subscription') }}"
+  data-subscriptions="{{ _('push_subscriptions') }}"
+  data-status-registration-pending="{{ _('push_status_registration_pending') }}"
+  data-status-check-failed="{{ _('push_status_check_failed') }}"
+  data-status-connection-error="{{ _('push_status_connection_error') }}"
+  data-status-browser-blocked="{{ _('push_status_browser_blocked') }}"
+  data-status-disabled="{{ _('push_status_disabled') }}"
+  data-status-not-configured="{{ _('push_status_not_configured') }}"
+  data-disable-button="{{ _('push_disable_btn') }}"
+  data-enable-button="{{ _('push_toggle_btn') }}"
+  data-disabled="{{ _('push_disabled') }}"
+  data-enabled-success="{{ _('push_enabled_success') }}"
+  data-enable-failed="{{ _('push_enable_failed') }}"
+  data-operation-error="{{ _('push_operation_error') }}"
+  data-status-checking="{{ _('push_status_checking') }}"
+  data-verification-failed="{{ _('push_verification_failed') }}"
+>
   <h2>{{ _('push_notifications_title') }}</h2>
   <div class="stack">
     <p class="muted">{{ _('push_notifications_desc') }}</p>
     <button id="push-toggle-btn" class="btn" type="button">{{ _('push_toggle_btn') }}</button>
     <p id="push-register-status" class="muted">{{ _('push_status_checking') }}</p>
-    <hr>
     <button id="push-register-btn" class="btn btn-secondary" type="button">{{ _('push_register_now') }}</button>
     <p class="muted small">{{ _('push_register_hint') }}</p>
   </div>

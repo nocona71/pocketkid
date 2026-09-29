@@ -13,8 +13,9 @@
     </label>
     <label>{{ _('preferred_language') }} ({{ _('role_parent') }})
       <select name="parent_language">
-        <option value="en">{{ _('lang_en') }}</option>
-        <option value="it">{{ _('lang_it') }}</option>
+        {% for lang in available_languages %}
+        <option value="{{ lang }}">{{ _('lang_' ~ lang) }}</option>
+        {% endfor %}
       </select>
     </label>
 
