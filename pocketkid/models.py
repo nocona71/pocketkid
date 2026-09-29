@@ -21,6 +21,7 @@ class Wallet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey("user.id"), unique=True, nullable=False)
     balance = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    minimum_balance = db.Column(db.Numeric(10, 2), nullable=False, default=0, server_default="0")
 
     child = db.relationship("User")
 

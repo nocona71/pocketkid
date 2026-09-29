@@ -22,6 +22,7 @@ from .models import (
     Wallet,
 )
 from .services import (
+    can_debit,
     is_push_runtime_disabled,
     VAPID_PUBLIC_KEY,
     capitalize_name,
@@ -33,6 +34,7 @@ from .services import (
     normalize_dt,
     notify_all_parents,
     parse_amount,
+    parse_minimum_balance,
     register_transaction,
     tr,
 )
@@ -338,8 +340,8 @@ def register_routes(app):
             return redirect(url_for("dashboard"))
 
         if operation_request.request_type == "withdrawal":
-            if Decimal(wallet.balance) < amount:
-                flash(tr("insufficient_balance"), "error")
+            if not can_debit(wallet, amount):
+                flash(tr("overdraft_limit_exceeded"), "error")
                 return redirect(url_for("dashboard"))
             wallet.balance = Decimal(wallet.balance) - amount
             operation_request.status = "approved"
@@ -432,8 +434,8 @@ def register_routes(app):
                 description = tr("manual_parent_movement")
 
         wallet = get_wallet_by_child(child_id)
-        if movement == "withdraw" and Decimal(wallet.balance) < amount:
-            flash(tr("insufficient_balance"), "error")
+        if movement == "withdraw" and not can_debit(wallet, amount):
+            flash(tr("overdraft_limit_exceeded"), "error")
             return redirect(url_for("parent_child_wallet", child_id=child_id))
 
         if movement == "deposit":
@@ -453,6 +455,25 @@ def register_routes(app):
         )
         db.session.commit()
         flash(tr("movement_saved"), "success")
+        return redirect(url_for("parent_child_wallet", child_id=child_id))
+
+    @app.route("/parent/child/<int:child_id>/minimum-balance", methods=["POST"])
+    @login_required(role="parent")
+    def parent_update_minimum_balance(child_id: int):
+        child = db.session.get(User, child_id)
+        if not child or child.role != "child":
+            flash(tr("child_not_found"), "error")
+            return redirect(url_for("dashboard"))
+
+        minimum_balance = parse_minimum_balance(request.form.get("minimum_balance"))
+        if minimum_balance is None:
+            flash(tr("invalid_overdraft_limit"), "error")
+            return redirect(url_for("parent_child_wallet", child_id=child_id))
+
+        wallet = get_wallet_by_child(child_id)
+        wallet.minimum_balance = minimum_balance
+        db.session.commit()
+        flash(tr("overdraft_limit_updated"), "success")
         return redirect(url_for("parent_child_wallet", child_id=child_id))
 
     @app.route("/parent/child/<int:child_id>/reset-password", methods=["POST"])
@@ -576,7 +597,7 @@ def register_routes(app):
             )
             db.session.add(child)
             db.session.flush()
-            db.session.add(Wallet(child_id=child.id, balance=initial_balance))
+            db.session.add(Wallet(child_id=child.id, balance=initial_balance, minimum_balance=Decimal("0.00")))
 
             if initial_balance > 0:
                 register_transaction(

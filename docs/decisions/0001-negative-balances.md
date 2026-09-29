@@ -21,7 +21,12 @@ constraint. The restriction is imposed by application checks.
 
 Wallet balances may be positive, zero, or negative.
 
-All authorized debit paths must be able to reduce a wallet below zero:
+Each wallet has a configurable minimum balance. It defaults to `0.00`, which
+preserves PocketKid's original no-overdraft behavior. A parent may set the
+minimum to zero or a negative amount for each child. Children can see their
+current limit but cannot change it.
+
+All authorized debit paths may reduce a wallet down to that minimum:
 
 - a withdrawal requested by a child and approved by a parent;
 - a withdrawal entered directly by a parent; and
@@ -39,21 +44,23 @@ A negative balance must be presented clearly as debt in parent and child
 views. Color alone is not sufficient; the interface must include a textual
 debt indication while retaining the numeric sign.
 
-No credit limit, interest calculation, or automatic debt collection is added.
+No interest calculation or automatic debt collection is added.
 Negative opening balances are outside the scope of this decision; debt should
 arise from recorded debit transactions.
 
 ## Consequences
 
-- Insufficient-balance checks must no longer reject or skip otherwise
-  authorized withdrawals.
-- Existing numeric columns can be retained; no schema change is required for
-  negative values.
+- Debit checks compare the resulting balance with the wallet's configured
+  minimum. An attempted debit below that limit is rejected or skipped.
+- `Wallet` requires a minimum-balance column and existing databases require a
+  migration that initializes it to zero.
 - Wallet updates and transaction creation must continue to be committed
   together so the stored balance and history agree.
-- Tests must cover withdrawals that leave positive, zero, and negative
-  balances across each debit path.
+- Tests must cover the zero default, configured negative limits, exact-limit
+  withdrawals, and rejected withdrawals across each debit path.
 - Balance displays must distinguish debt from available positive funds.
+- Parent and child wallet views must show the configured limit; only parents
+  may change it.
 - Existing authorization boundaries remain unchanged.
 
 This decision does not introduce transaction editing, immutable audit history,

@@ -10,7 +10,7 @@ Public repository:
 
 Parents and children access the same app with role-based features:
 - Children can submit reward requests linked to challenges, plus withdrawal and generic deposit requests.
-- Parents can approve/reject requests, perform manual wallet movements, configure recurring movements, manage users, and review full history.
+- Parents can approve/reject requests, set per-child overdraft limits, perform manual wallet movements, configure recurring movements, manage users, and review full history.
 
 The app is installable as a Progressive Web App (PWA) and supports real Web Push notifications (VAPID) for system-level alerts.
 
@@ -165,7 +165,7 @@ The default compose file:
 2. Parent receives notification and sees pending request.
 3. Parent approves or rejects:
    - **Approve reward/deposit** → wallet increases.
-   - **Approve withdrawal** → wallet decreases (if sufficient balance).
+   - **Approve withdrawal** → wallet decreases down to the per-child overdraft limit and may become debt.
    - **Reject** → request state updates to rejected.
 4. Transaction is saved in history and notifications are generated.
 
