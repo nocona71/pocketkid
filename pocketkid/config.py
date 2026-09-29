@@ -13,11 +13,15 @@ DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 DB_PATH = DATA_DIR / "pocketkid.db"
 LOCALES_DIR = BASE_DIR / "locales"
+VERSION_FILE = BASE_DIR / "VERSION"
 
 SUPPORTED_LANGUAGES = ("en", "it")
-APP_VERSION = os.getenv("APP_VERSION", "1.0.2")
+PROJECT_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
+APP_VERSION = PROJECT_VERSION
 APP_CREDITS = os.getenv("APP_CREDITS", "Stefano Perna")
-APP_REPO_URL = os.getenv("APP_REPO_URL", "https://github.com/pernastefano/pocketkid")
+APP_REPO_URL = os.getenv("APP_REPO_URL", "https://github.com/nocona71/pocketkid")
+APP_UPSTREAM_REPO_URL = os.getenv("APP_UPSTREAM_REPO_URL", "https://github.com/pernastefano/pocketkid")
+APP_UPSTREAM_COMMIT = os.getenv("APP_UPSTREAM_COMMIT", "b0356f37956fe1f4d027bba68682591e590737b9")
 
 
 class Settings:

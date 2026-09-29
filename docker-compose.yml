@@ -2,7 +2,7 @@ services:
   pocketkid:
     build:
       context: .
-    image: ghcr.io/pernastefano/pocketkid:latest
+    image: ghcr.io/nocona71/pocketkid:${POCKETKID_IMAGE_TAG:-latest}
     container_name: pocketkid
     user: "${PUID:-1000}:${PGID:-1000}"
     env_file:
