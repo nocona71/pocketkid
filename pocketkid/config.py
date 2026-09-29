@@ -15,7 +15,7 @@ DB_PATH = DATA_DIR / "pocketkid.db"
 LOCALES_DIR = BASE_DIR / "locales"
 VERSION_FILE = BASE_DIR / "VERSION"
 
-SUPPORTED_LANGUAGES = ("en", "it")
+SUPPORTED_LANGUAGES = ("en", "it", "de")
 PROJECT_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
 APP_VERSION = PROJECT_VERSION
 APP_CREDITS = os.getenv("APP_CREDITS", "Stefano Perna")

@@ -54,7 +54,7 @@ PocketKid uses a simple, production-friendly stack:
 - **Containerization**:
   - Docker + Docker Compose
 - **Internationalization (i18n)**:
-  - English + Italian locale files
+  - English, Italian, and German locale files
   - Per-user preferred language setting
 
 ---
