@@ -5,8 +5,9 @@
 PocketKid is a mobile-first Python PWA to manage a virtual wallet for your children.
 It helps parents organize pocket money through configurable challenges and a complete request approval flow.
 
-Public repository:
-- https://github.com/pernastefano/pocketkid
+Fork repository: https://github.com/nocona71/pocketkid
+
+Upstream project: https://github.com/pernastefano/pocketkid
 
 Parents and children access the same app with role-based features:
 - Children can submit reward requests linked to challenges, plus withdrawal and generic deposit requests.
@@ -121,6 +122,8 @@ cp .env.example .env
 # optional: set host user/group for container process
 # PUID=1000
 # PGID=1000
+# optional: pin a published fork image, for example 0.1.0
+# POCKETKID_IMAGE_TAG=0.1.0
 ```
 
 ```bash
@@ -132,6 +135,17 @@ The default compose file:
 - persists app data in `./data`
 - restarts container automatically (`unless-stopped`)
 - supports optional `PUID`/`PGID` to run the container as a specific host UID/GID (default `1000:1000`)
+
+---
+
+# Releases
+
+This fork uses an independent semantic version from the upstream project. The
+current fork version is stored in `VERSION`, and release tags use the form
+`fork-v<version>`.
+
+See [`docs/RELEASING.md`](docs/RELEASING.md) for the tested GitHub Release and
+GHCR publishing process.
 
 ---
 
@@ -343,6 +357,8 @@ Notes:
 - `locales/` → i18n files (`en.json`, `it.json`)
 - `data/` → SQLite DB
 - `.env.example` → template for VAPID environment variables
+- `VERSION` → fork release version
+- `docs/RELEASING.md` → release and container publishing process
 - `Dockerfile`, `docker-compose.yml` → container setup
 
 ---
