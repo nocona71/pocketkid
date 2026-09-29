@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+python -m unittest discover -s tests -v
+python -m py_compile pocketkid/*.py tests/*.py
+
+for locale in locales/*.json; do
+  python -m json.tool "$locale" >/dev/null
+done
+
+node --check static/js/app.js
+node --check static/sw.js
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git diff --check
+fi

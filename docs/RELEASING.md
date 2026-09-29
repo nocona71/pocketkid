@@ -43,36 +43,35 @@ The release workflow also verifies that:
 The exact image that passes the container tests is pushed with OCI metadata
 and receives a GitHub artifact attestation tied to its registry digest.
 
-## Prepare a release
-
-Use a pull request for any version change. For example, when preparing
-`0.2.0`:
+The same checks can be run locally:
 
 ```bash
-git switch master
-git pull --ff-only origin master
-git switch -c chore/release-0.2.0
+./scripts/check
+./scripts/container-smoke --build
 ```
 
-Update `VERSION` to `0.2.0`, update user-facing documentation if required,
-run the local checks, and open a pull request. Merge only after CI succeeds.
+## Prepare a release
 
-Do not create the tag before the release-preparation pull request is merged.
+Feature branches should use Conventional Commit subjects. In particular:
+
+- `fix:` produces a patch release;
+- `feat:` produces a minor release;
+- a breaking-change marker produces a major release.
+
+After changes are merged into `master`, Release Please creates or updates a
+release pull request containing the next `VERSION` and `CHANGELOG.md`.
+Review and merge that pull request when the accumulated changes should be
+released. Do not update `VERSION` in ordinary feature pull requests.
 
 ## Publish a release
 
-1. Open the repository's **Releases** page on GitHub.
-2. Select **Draft a new release**.
-3. Create the tag `fork-v<version>` from `master`, for example
-   `fork-v0.2.0`.
-4. Use `PocketKid Fork <version>` as the release title.
-5. Do not mark the stable release as a pre-release.
-6. Generate the release notes, review them, and publish the release.
-7. Wait for the **Publish release image** workflow to succeed.
-8. Confirm the versioned image and its digest in GitHub Packages.
+Merging the Release Please pull request creates the namespaced
+`fork-v<version>` tag and GitHub Release. The same workflow then calls
+**Publish release image**, which retests, builds, smoke-tests, publishes, and
+attests the image.
 
-Publishing the release creates the tag. Do not create a second local tag for
-the same version.
+Manually publishing a correctly named stable GitHub Release remains supported
+as a recovery path. Do not move or overwrite an existing release tag.
 
 ## Verify the result
 

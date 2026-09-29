@@ -3,6 +3,17 @@ name: Publish release image
 on:
   release:
     types: [published]
+  workflow_call:
+    inputs:
+      release_tag:
+        description: Stable release tag to publish
+        required: true
+        type: string
+      release_prerelease:
+        description: Whether the release is a prerelease
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -11,7 +22,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-${{ github.event.release.tag_name }}
+  group: release-${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
   cancel-in-progress: false
 
 env:
@@ -30,15 +41,15 @@ jobs:
       - name: Checkout release tag
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
           fetch-depth: 0
 
       - name: Validate release tag and version
         id: version
         shell: bash
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
+          RELEASE_PRERELEASE: ${{ (github.event_name == 'release' && github.event.release.prerelease == true) || (github.event_name != 'release' && inputs.release_prerelease == true) }}
         run: |
           if [ "$RELEASE_PRERELEASE" != "false" ]; then
             echo "Pre-releases are not supported by this stable release workflow" >&2
@@ -65,6 +76,7 @@ jobs:
 
           major="${version%%.*}"
           major_minor="${version%.*}"
+          commit="$(git rev-parse HEAD)"
           publish_major=true
           if [ "$major" = "0" ]; then
             publish_major=false
@@ -74,7 +86,7 @@ jobs:
           echo "major=$major" >> "$GITHUB_OUTPUT"
           echo "major_minor=$major_minor" >> "$GITHUB_OUTPUT"
           echo "publish_major=$publish_major" >> "$GITHUB_OUTPUT"
-          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -86,8 +98,8 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Run tests
-        run: python -m unittest discover -s tests -v
+      - name: Run checks
+        run: ./scripts/check
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -118,43 +130,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Verify image version
-        env:
-          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
-          RELEASE_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-        run: |
-          docker run --rm \
-            --env EXPECTED_VERSION \
-            --env VAPID_PUBLIC_KEY \
-            --env VAPID_PRIVATE_KEY \
-            "$RELEASE_IMAGE" \
-            python -c 'import os; from pocketkid.config import APP_VERSION; assert APP_VERSION == os.environ["EXPECTED_VERSION"]'
-
-      - name: Start and verify release container
-        shell: bash
+      - name: Verify release container
         env:
           RELEASE_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-        run: |
-          docker run --detach --name pocketkid-release-smoke \
-            --publish 127.0.0.1:8000:8000 \
-            --env VAPID_PUBLIC_KEY \
-            --env VAPID_PRIVATE_KEY \
-            "$RELEASE_IMAGE"
-
-          for attempt in {1..30}; do
-            status="$(curl --silent --output /dev/null --write-out "%{http_code}" http://127.0.0.1:8000/ || true)"
-            if [ "$status" = "302" ]; then
-              exit 0
-            fi
-            sleep 1
-          done
-
-          docker logs pocketkid-release-smoke
-          exit 1
-
-      - name: Stop release smoke-test container
-        if: always()
-        run: docker rm --force pocketkid-release-smoke || true
+        run: ./scripts/container-smoke --expected-version "${{ steps.version.outputs.version }}" "$RELEASE_IMAGE"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
