@@ -76,6 +76,21 @@ def parse_amount(raw: str | None) -> Decimal | None:
     return amount
 
 
+def parse_minimum_balance(raw: str | None) -> Decimal | None:
+    try:
+        amount = Decimal(raw).quantize(Decimal("0.01"))
+    except (InvalidOperation, TypeError):
+        return None
+    if not amount.is_finite() or amount > 0:
+        return None
+    return amount
+
+
+def can_debit(wallet: Wallet, amount: Decimal) -> bool:
+    resulting_balance = Decimal(wallet.balance) - Decimal(amount)
+    return resulting_balance >= Decimal(wallet.minimum_balance)
+
+
 def normalize_dt(value: datetime) -> datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=UTC)
@@ -161,11 +176,16 @@ def ensure_schema_updates():
         db.session.execute(text("ALTER TABLE recurring_movement ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT 0"))
         db.session.commit()
 
+    wallet_columns = [row[1] for row in db.session.execute(text("PRAGMA table_info(wallet)"))]
+    if "minimum_balance" not in wallet_columns:
+        db.session.execute(text("ALTER TABLE wallet ADD COLUMN minimum_balance NUMERIC(10, 2) NOT NULL DEFAULT 0"))
+        db.session.commit()
+
 
 def get_wallet_by_child(child_id: int) -> Wallet:
     wallet = Wallet.query.filter_by(child_id=child_id).first()
     if wallet is None:
-        wallet = Wallet(child_id=child_id, balance=Decimal("0.00"))
+        wallet = Wallet(child_id=child_id, balance=Decimal("0.00"), minimum_balance=Decimal("0.00"))
         db.session.add(wallet)
         db.session.commit()
     return wallet
@@ -263,10 +283,15 @@ def process_recurring_movements():
         wallet = get_wallet_by_child(item.child_id)
         amount = Decimal(item.amount)
 
-        if item.movement == "withdraw" and Decimal(wallet.balance) < amount:
+        if item.movement == "withdraw" and not can_debit(wallet, amount):
             notify_all_parents(
                 kind="recurring_failed",
-                message=tr("notif_recurring_failed", child=capitalize_name(item.child.username), amount=f"{amount:.2f}"),
+                message=tr(
+                    "notif_recurring_failed",
+                    child=capitalize_name(item.child.username),
+                    amount=f"{amount:.2f}",
+                    limit=f"{Decimal(wallet.minimum_balance):.2f}",
+                ),
             )
             item.next_run_at = next_run(item.next_run_at, item.frequency)
             continue

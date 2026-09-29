@@ -34,7 +34,9 @@
       <div class="list-item child-card-item">
         <a class="child-card-main" href="{{ url_for('parent_child_wallet', child_id=row.child.id) }}">
           <p class="label child-card-name">{{ row.child.username|name_cap }}</p>
-          <p class="amount positive child-card-wallet">{{ row.wallet.balance|eur }}</p>
+          <p class="amount {{ 'negative' if row.wallet.balance < 0 else 'positive' }} child-card-wallet">
+            {{ row.wallet.balance|eur }}{% if row.wallet.balance < 0 %} · {{ _('debt') }}{% endif %}
+          </p>
         </a>
         <form method="post" class="child-card-delete" action="{{ url_for('delete_child', child_id=row.child.id) }}" data-double-confirm="true" data-confirm-first="{{ _('confirm_delete_1') }}" data-confirm-second="{{ _('confirm_delete_2') }}">
           <input type="hidden" name="double_confirmed" value="0">

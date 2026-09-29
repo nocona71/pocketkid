@@ -119,6 +119,10 @@ main {
   font-weight: 700;
 }
 
+.balance.negative {
+  color: #ffd0d0;
+}
+
 .list {
   display: grid;
   gap: 10px;

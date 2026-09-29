@@ -17,7 +17,9 @@
           <p class="label">{{ row.child.username|name_cap }}</p>
           <p class="muted">{{ _('pending_count', count=row.pending_count) }}</p>
         </div>
-        <p class="amount positive">{{ row.wallet.balance|eur }}</p>
+        <p class="amount {{ 'negative' if row.wallet.balance < 0 else 'positive' }}">
+          {{ row.wallet.balance|eur }}{% if row.wallet.balance < 0 %} · {{ _('debt') }}{% endif %}
+        </p>
       </a>
     {% else %}
       <p class="muted">{{ _('no_children') }}</p>

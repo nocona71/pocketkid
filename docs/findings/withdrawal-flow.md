@@ -1,3 +1,7 @@
+> Historical review: This document describes the implementation before negative
+> balances were adopted. See [ADR 0001](../decisions/0001-negative-balances.md)
+> for the accepted policy and current behavior.
+
 The current withdrawal flow is **child request → parent approval → wallet debit and transaction creation**. Children have individual accounts and can view their own wallets. Application checks prevent overdrafts; the declared wallet model has no nonnegative constraint.
 
 This document records a static review of the current implementation, not an implementation proposal. No application code was changed. The review did not start the application, access the database or `.env`, or run tests. References below use repository-relative paths and line numbers from the reviewed source.
