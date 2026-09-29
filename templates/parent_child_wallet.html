@@ -11,6 +11,12 @@
     {{ wallet.balance|eur }}{% if wallet.balance < 0 %} · {{ _('debt') }}{% endif %}
   </p>
   <p class="muted">{{ _('overdraft_limit') }}: {{ wallet.minimum_balance|eur }}</p>
+  {% if wallet.balance < wallet.minimum_balance %}
+    <div class="overdraft-warning" role="status">
+      <strong>{{ _('overdraft_limit_exceeded_by', amount=(wallet.minimum_balance - wallet.balance)|eur) }}</strong>
+      <span>{{ _('further_withdrawals_blocked') }}</span>
+    </div>
+  {% endif %}
 </section>
 
 <section class="card">

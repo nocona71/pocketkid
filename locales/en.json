@@ -39,6 +39,8 @@
   "overdraft_limit_hint": "Lowest permitted balance (zero or a negative amount).",
   "save_overdraft_limit": "Save overdraft limit",
   "overdraft_limit_updated": "Overdraft limit updated",
+  "overdraft_limit_exceeded_by": "Overdraft limit exceeded by {amount}.",
+  "further_withdrawals_blocked": "Further withdrawals are blocked.",
   "request_reward": "Request reward",
   "completed_challenge_label": "Completed challenge",
   "note": "Note",

@@ -39,6 +39,8 @@
   "overdraft_limit_hint": "Saldo minimo consentito (zero o un importo negativo).",
   "save_overdraft_limit": "Salva limite di scoperto",
   "overdraft_limit_updated": "Limite di scoperto aggiornato",
+  "overdraft_limit_exceeded_by": "Limite di scoperto superato di {amount}.",
+  "further_withdrawals_blocked": "Ulteriori prelievi sono bloccati.",
   "request_reward": "Richiedi Premio",
   "completed_challenge_label": "Sfida completata",
   "note": "Nota",
