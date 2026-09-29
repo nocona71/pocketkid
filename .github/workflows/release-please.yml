@@ -38,7 +38,7 @@ jobs:
             echo "Release Please did not return a pull-request branch" >&2
             exit 1
           fi
-          gh workflow run ci.yml --ref "$head_branch"
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$head_branch"
 
   publish:
     needs: release-please
