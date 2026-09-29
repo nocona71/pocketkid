@@ -1,20 +1,19 @@
 {
   "name": "PocketKid Development",
-
   "build": {
     "dockerfile": "Dockerfile"
   },
-
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "lts"
+    }
+  },
   "workspaceFolder": "/workspace/pocketkid",
-
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/pocketkid,type=bind",
-
   "postCreateCommand": "pip install -r requirements.txt",
-
   "forwardPorts": [
     8000
   ],
-
   "customizations": {
     "vscode": {
       "extensions": [
@@ -26,6 +25,5 @@
       }
     }
   },
-
   "remoteUser": "vscode"
 }
