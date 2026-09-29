@@ -9,7 +9,7 @@ os.environ.setdefault("VAPID_PUBLIC_KEY", "test-public-key")
 os.environ.setdefault("VAPID_PRIVATE_KEY", "test-private-key")
 
 from pocketkid import create_app
-from pocketkid.config import LOCALES_DIR, SUPPORTED_LANGUAGES, Settings
+from pocketkid.config import LOCALES_DIR, PROJECT_VERSION, SUPPORTED_LANGUAGES, Settings
 from pocketkid.extensions import db
 from pocketkid.models import User
 
@@ -52,6 +52,12 @@ class LocaleCatalogTests(unittest.TestCase):
         ):
             with self.subTest(literal=literal):
                 self.assertNotIn(literal, javascript)
+
+    def test_static_assets_are_versioned_to_bypass_stale_service_worker_caches(self):
+        base_template = (LOCALES_DIR.parent / "templates/base.html").read_text(encoding="utf-8")
+
+        self.assertIn("filename='css/styles.css', v=app_version", base_template)
+        self.assertIn("filename='js/app.js', v=app_version", base_template)
 
 
 class GermanLocalizationTests(unittest.TestCase):
@@ -100,6 +106,7 @@ class GermanLocalizationTests(unittest.TestCase):
         self.assertIn(b'<html lang="de">', response.data)
         self.assertIn("Push-Benachrichtigungen".encode(), response.data)
         self.assertIn(b'data-disable-button="Push-Benachrichtigungen deaktivieren"', response.data)
+        self.assertIn(f"/static/js/app.js?v={PROJECT_VERSION}".encode(), response.data)
         self.assertNotIn(b"<hr", response.data)
 
     def test_setup_persists_german_preference(self):
