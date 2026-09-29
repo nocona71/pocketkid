@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+build_image=false
+expected_version="$(tr -d '\r\n' < VERSION)"
+image="pocketkid:smoke"
+
+while (($#)); do
+  case "$1" in
+    --build)
+      build_image=true
+      shift
+      ;;
+    --expected-version)
+      if (($# < 2)); then
+        echo "--expected-version requires a value" >&2
+        exit 2
+      fi
+      expected_version="$2"
+      shift 2
+      ;;
+    --help)
+      echo "Usage: $0 [--build] [--expected-version VERSION] [IMAGE]"
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 2
+      ;;
+    *)
+      image="$1"
+      shift
+      if (($#)); then
+        echo "Only one image name may be provided" >&2
+        exit 2
+      fi
+      ;;
+  esac
+done
+
+if $build_image; then
+  docker build --tag "$image" .
+fi
+
+docker run --rm \
+  --env EXPECTED_VERSION="$expected_version" \
+  --env VAPID_PUBLIC_KEY=test-public-key \
+  --env VAPID_PRIVATE_KEY=test-private-key \
+  "$image" \
+  python -c 'import os; from pocketkid.config import APP_VERSION; assert APP_VERSION == os.environ["EXPECTED_VERSION"]'
+
+container_name="pocketkid-smoke-$$"
+# shellcheck disable=SC2329 # Invoked indirectly by the EXIT trap.
+cleanup() {
+  docker rm --force "$container_name" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+docker run --detach \
+  --name "$container_name" \
+  --env VAPID_PUBLIC_KEY=test-public-key \
+  --env VAPID_PRIVATE_KEY=test-private-key \
+  "$image" >/dev/null
+
+for _ in {1..30}; do
+  status="$(docker exec "$container_name" python -c \
+    'import http.client; connection = http.client.HTTPConnection("127.0.0.1", 8000, timeout=2); connection.request("GET", "/"); print(connection.getresponse().status)' \
+    2>/dev/null || true)"
+  if [[ "$status" == "302" ]]; then
+    exit 0
+  fi
+  sleep 1
+done
+
+docker logs "$container_name"
+echo "Container smoke test did not receive HTTP 302" >&2
+exit 1

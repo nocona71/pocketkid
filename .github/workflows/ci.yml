@@ -37,7 +37,7 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Run tests
-        run: python -m unittest discover -s tests -v
+        run: ./scripts/check
 
   container-smoke-test:
     needs: test
@@ -48,29 +48,5 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: Build container image
-        run: docker build --tag pocketkid:ci .
-
-      - name: Start and verify container
-        shell: bash
-        run: |
-          docker run --detach --name pocketkid-smoke \
-            --publish 127.0.0.1:8000:8000 \
-            --env VAPID_PUBLIC_KEY=test-public-key \
-            --env VAPID_PRIVATE_KEY=test-private-key \
-            pocketkid:ci
-
-          for attempt in {1..30}; do
-            status="$(curl --silent --output /dev/null --write-out "%{http_code}" http://127.0.0.1:8000/ || true)"
-            if [ "$status" = "302" ]; then
-              exit 0
-            fi
-            sleep 1
-          done
-
-          docker logs pocketkid-smoke
-          exit 1
-
-      - name: Stop smoke-test container
-        if: always()
-        run: docker rm --force pocketkid-smoke || true
+      - name: Build and smoke-test container
+        run: ./scripts/container-smoke --build pocketkid:ci
