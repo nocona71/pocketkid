@@ -69,13 +69,13 @@
   <h2>{{ _('requests_status') }}</h2>
   <div class="list">
     {% for req in requests %}
-      <div class="list-item request-item">
+      <a class="list-item request-item" href="{{ url_for('request_details', request_id=req.id) }}">
         <p class="label request-kind">{{ _('request_type_reward') if req.request_type == 'reward' else (_('request_type_withdrawal') if req.request_type == 'withdrawal' else _('request_type_deposit')) }}</p>
         <p class="badge {{ req.status }} request-status">{{ req.status }}</p>
         <p class="muted request-description">{{ req.description }}</p>
         <p class="muted request-time">{{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
-      </div>
+      </a>
     {% else %}
       <p class="muted">{{ _('no_requests') }}</p>
     {% endfor %}

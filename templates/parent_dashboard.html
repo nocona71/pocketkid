@@ -53,6 +53,7 @@
         <p class="muted request-time">{{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
         <div class="inline-actions parent-request-actions">
+          <a class="btn btn-secondary" href="{{ url_for('request_details', request_id=req.id) }}">{{ _('details') }}</a>
           <form method="post" action="{{ url_for('parent_decide_request', request_id=req.id) }}">
             <input type="hidden" name="decision" value="approve">
             <button class="btn" type="submit">{{ _('approve') }}</button>

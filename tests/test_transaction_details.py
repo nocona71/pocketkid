@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import unittest
+from datetime import UTC, datetime
 from decimal import Decimal
 
 os.environ.setdefault("VAPID_PUBLIC_KEY", "test-public-key")
@@ -10,7 +11,7 @@ os.environ.setdefault("VAPID_PRIVATE_KEY", "test-private-key")
 from pocketkid import create_app
 from pocketkid.config import Settings
 from pocketkid.extensions import db
-from pocketkid.models import User, Wallet
+from pocketkid.models import OperationRequest, User, Wallet
 from pocketkid.services import register_transaction
 
 
@@ -72,6 +73,27 @@ class TransactionDetailsTests(unittest.TestCase):
     def login_as(self, user_id: int) -> None:
         with self.client.session_transaction() as session:
             session["user_id"] = user_id
+
+    def add_request(
+        self,
+        *,
+        child_id: int,
+        status: str,
+        reviewed_by: int | None = None,
+    ) -> int:
+        with self.app.app_context():
+            operation_request = OperationRequest(
+                request_type="withdrawal",
+                status=status,
+                child_id=child_id,
+                amount=Decimal("323423.00"),
+                description="New aquarium",
+                reviewed_at=datetime(2026, 9, 30, 10, 10, tzinfo=UTC) if reviewed_by else None,
+                reviewed_by=reviewed_by,
+            )
+            db.session.add(operation_request)
+            db.session.commit()
+            return operation_request.id
 
     def test_parent_sees_complete_approved_transaction_details(self):
         parent_id, _, _, transaction_id, _ = self.seed_ledger()
@@ -144,6 +166,56 @@ class TransactionDetailsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(f'href="/transactions/{transaction_id}"'.encode(), response.data)
+
+    def test_child_request_history_links_to_rejected_request_details(self):
+        parent_id, child_id, _, _, _ = self.seed_ledger()
+        request_id = self.add_request(child_id=child_id, status="rejected", reviewed_by=parent_id)
+        self.login_as(child_id)
+
+        dashboard = self.client.get("/dashboard")
+        details = self.client.get(f"/requests/{request_id}")
+
+        self.assertIn(f'href="/requests/{request_id}"'.encode(), dashboard.data)
+        self.assertEqual(details.status_code, 200)
+        for expected in (
+            b"Request details",
+            b"Withdrawal",
+            b"\xe2\x82\xac 323423.00",
+            b"New aquarium",
+            b"Requested by",
+            b"Rejected",
+            b"Reviewed at",
+            b"Reviewed by",
+            b"Parent",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, details.data)
+
+    def test_parent_can_open_pending_request_from_dashboard(self):
+        parent_id, child_id, _, _, _ = self.seed_ledger()
+        request_id = self.add_request(child_id=child_id, status="pending")
+        self.login_as(parent_id)
+
+        dashboard = self.client.get("/dashboard")
+        details = self.client.get(f"/requests/{request_id}")
+
+        self.assertIn(f'href="/requests/{request_id}"'.encode(), dashboard.data)
+        self.assertEqual(details.status_code, 200)
+        self.assertIn(b"Account", details.data)
+        self.assertIn(b"Child", details.data)
+        self.assertIn(b"Pending", details.data)
+        self.assertNotIn(b"Reviewed by", details.data)
+
+    def test_child_cannot_view_another_child_request(self):
+        _, child_id, other_child_id, _, _ = self.seed_ledger()
+        request_id = self.add_request(child_id=other_child_id, status="rejected")
+        self.login_as(child_id)
+
+        response = self.client.get(f"/requests/{request_id}", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Request not found", response.data)
+        self.assertNotIn(b"New aquarium", response.data)
 
     def test_signed_out_user_is_redirected_to_login(self):
         _, _, _, transaction_id, _ = self.seed_ledger()

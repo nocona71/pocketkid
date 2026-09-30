@@ -431,6 +431,23 @@ def register_routes(app):
             approval_status=approval_status,
         )
 
+    @app.route("/requests/<int:request_id>", methods=["GET"])
+    @login_required()
+    def request_details(request_id: int):
+        user = current_user()
+        operation_request = db.session.get(OperationRequest, request_id)
+        if not operation_request or (user.role == "child" and operation_request.child_id != user.id):
+            flash(tr("request_not_found"), "error")
+            return redirect(url_for("dashboard"))
+        if user.role not in {"parent", "child"}:
+            flash(tr("permission_denied"), "error")
+            return redirect(url_for("dashboard"))
+
+        return render_template(
+            "request_details.html",
+            operation_request=operation_request,
+        )
+
     @app.route("/parent/child/<int:child_id>/manual", methods=["POST"])
     @login_required(role="parent")
     def parent_manual_movement(child_id: int):

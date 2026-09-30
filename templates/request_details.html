@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('request_details') }} - {{ _('app_name') }}{% endblock %}
+{% block content %}
+<nav class="actions-row">
+  <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">{{ _('back_dashboard') }}</a>
+</nav>
+
+<section class="card">
+  <h2>{{ _('request_details') }}</h2>
+  <dl class="detail-list">
+    {% if user.role == 'parent' %}
+      <div class="detail-row">
+        <dt>{{ _('account') }}</dt>
+        <dd>{{ operation_request.child.username|name_cap }}</dd>
+      </div>
+    {% endif %}
+    <div class="detail-row">
+      <dt>{{ _('request_type') }}</dt>
+      <dd>{{ _('request_type_' ~ operation_request.request_type) }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('amount') }}</dt>
+      <dd class="amount {{ 'positive' if operation_request.request_type in ['reward', 'deposit'] else 'negative' }}">
+        {{ operation_request.amount|currency }}
+      </dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('submitted_at') }}</dt>
+      <dd>{{ operation_request.created_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('description') }}</dt>
+      <dd>{{ operation_request.description }}</dd>
+    </div>
+    {% if operation_request.challenge %}
+      <div class="detail-row">
+        <dt>{{ _('challenge') }}</dt>
+        <dd>{{ operation_request.challenge.name }}</dd>
+      </div>
+    {% endif %}
+    <div class="detail-row">
+      <dt>{{ _('requested_by') }}</dt>
+      <dd>{{ operation_request.child.username|name_cap }} · {{ _('role_child') }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('request_status') }}</dt>
+      <dd><span class="badge {{ operation_request.status }}">{{ _('status_' ~ operation_request.status) }}</span></dd>
+    </div>
+    {% if operation_request.reviewed_at %}
+      <div class="detail-row">
+        <dt>{{ _('reviewed_at') }}</dt>
+        <dd>{{ operation_request.reviewed_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+      </div>
+      <div class="detail-row">
+        <dt>{{ _('reviewed_by') }}</dt>
+        <dd>
+          {% if operation_request.reviewer %}
+            {{ operation_request.reviewer.username|name_cap }} · {{ _('role_parent') }}
+          {% else %}
+            {{ _('unknown_actor') }}
+          {% endif %}
+        </dd>
+      </div>
+    {% endif %}
+  </dl>
+</section>
+{% endblock %}
