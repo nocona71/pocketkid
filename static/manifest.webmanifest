@@ -7,7 +7,7 @@
   "orientation": "portrait-primary",
   "background_color": "#f5f7fb",
   "theme_color": "#0a2748",
-  "description": "Virtual family ledger with parental approval",
+  "description": "Shared family ledger with parental approval",
   "categories": ["finance", "productivity"],
   "icons": [
     {

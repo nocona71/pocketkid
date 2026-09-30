@@ -9,6 +9,7 @@ its live state.
 | Information | Source of truth |
 | --- | --- |
 | Product boundaries and non-goals | `docs/project-scope.md` |
+| Product model and preferred terminology | `docs/decisions/0002-family-ledger-product-model.md` |
 | Stable feature IDs and intended outcomes | `docs/backlog.md` |
 | Product and architecture decisions | `docs/decisions/` |
 | Work status, discussion, and ownership | GitHub Issues |
@@ -73,13 +74,15 @@ GitHub rather than only mentioning them in prose.
 2. Capture new reports through an issue form and assign the appropriate type
    label.
 3. Triage the outcome, acceptance criteria, priority, and dependencies.
-4. Mark an item Ready only when product decisions are resolved and the work is
+4. Evaluate the proposal against the family-ledger model and preferred
+   terminology before accepting wallet-oriented assumptions.
+5. Mark an item Ready only when product decisions are resolved and the work is
    small enough to implement safely.
-5. Develop one logical feature per branch without working directly on
+6. Develop one logical feature per branch without working directly on
    `master`.
-6. Link the pull request with `Closes #NNN` so GitHub closes the issue when the
+7. Link the pull request with `Closes #NNN` so GitHub closes the issue when the
    change merges.
-7. Close historical items as completed only after recording evidence such as a
+8. Close historical items as completed only after recording evidence such as a
    commit, test, or current implementation reference.
 
 ## Definition of done

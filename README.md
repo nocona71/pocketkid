@@ -2,17 +2,24 @@
 
 # Introduction
 
-PocketKid is a mobile-first Python PWA to manage a virtual wallet for your children.
-It helps parents organize pocket money through configurable challenges and a complete request approval flow.
+PocketKid is a mobile-first family ledger for keeping a shared tally of money
+parents and children owe one another. Each child has a signed account balance
+and a chronological history of entries; a negative balance is a normal ledger
+state, not an invalid wallet condition.
 
 Fork repository: https://github.com/nocona71/pocketkid
 
 Upstream project: https://github.com/pernastefano/pocketkid
 
 Parents and children access the same app with role-based features:
-- Children can submit reward requests linked to challenges, plus withdrawal and generic deposit requests.
-- Parents can approve/reject requests, set per-child overdraft limits, choose the ledger currency, perform manual wallet movements, configure recurring movements, manage users, and review full history.
+- Children can propose reward, credit, and debit entries for their own account.
+- Parents can approve/reject proposals, set per-child minimum balances, choose the ledger currency, record direct or recurring entries, manage users, and review full history.
 - Transaction creation and approval actors are retained as identity snapshots, even if the user account is later removed.
+
+The signed balance is expressed from the child's perspective: a positive value
+is owed or credited to the child, zero is settled, and a negative value is owed
+by the child to the family. See the [family-ledger product decision](docs/decisions/0002-family-ledger-product-model.md)
+for the preferred terminology and compatibility boundaries.
 
 The app is installable as a Progressive Web App (PWA) and supports real Web Push notifications (VAPID) for system-level alerts.
 
@@ -21,7 +28,7 @@ The app is installable as a Progressive Web App (PWA) and supports real Web Push
 <p>
   <a href="screens/parent-dashboard.png"><img src="screens/parent-dashboard.png" alt="Parent Dashboard" width="240"></a>
   <a href="screens/challenge-config.png"><img src="screens/challenge-config.png" alt="Challenge Configuration" width="240"></a>
-  <a href="screens/parent-deposit.png"><img src="screens/parent-deposit.png" alt="Parent Deposit" width="240"></a>
+  <a href="screens/parent-deposit.png"><img src="screens/parent-deposit.png" alt="Parent credit entry" width="240"></a>
 </p>
 <p>
   <a href="screens/recurring-config.png"><img src="screens/recurring-config.png" alt="Recurring Configuration" width="240"></a>
@@ -158,9 +165,9 @@ GHCR publishing process.
 - Manage children (create/delete with double confirmation)
 - Manage other parents (create/delete with safety constraints)
 - Configure challenges with predefined reward amounts
-- Review and approve/reject pending child requests
-- Execute manual wallet movements (deposit/withdrawal)
-- Create recurring movements with configurable frequency:
+- Review and approve/reject proposed child entries
+- Record direct credit and debit entries
+- Create recurring entries with configurable frequency:
   - daily
   - weekly
   - biweekly
@@ -169,20 +176,19 @@ GHCR publishing process.
 - Configure personal language and password
 
 ### Child
-- View wallet balance and operation history
+- View their signed balance and ledger history
 - Submit reward request (linked to configured challenge)
-- Submit withdrawal request
-- Submit generic deposit request
+- Propose debit and credit entries
 - Change personal language and password
 
-## Wallet Request Workflow
-1. Child submits a request (reward / withdrawal / deposit).
+## Proposed Entry Workflow
+1. Child proposes a reward, credit, or debit entry.
 2. Parent receives notification and sees pending request.
 3. Parent approves or rejects:
-   - **Approve reward/deposit** → wallet increases.
-   - **Approve withdrawal** → wallet decreases down to the per-child overdraft limit and may become debt.
+   - **Approve reward/credit** → the signed account balance increases.
+   - **Approve debit** → the balance decreases down to the configured minimum and may become negative.
    - **Reject** → request state updates to rejected.
-4. Transaction is saved in history and notifications are generated.
+4. An approved entry is saved in ledger history and notifications are generated.
 
 ## Notifications and Auto-Refresh
 - In-app notifications are available in the top-right mail icon.
@@ -359,6 +365,7 @@ Notes:
 - `data/` → SQLite DB
 - `.env.example` → template for VAPID environment variables
 - `VERSION` → fork release version
+- `docs/decisions/0002-family-ledger-product-model.md` → product model and terminology
 - `docs/RELEASING.md` → release and container publishing process
 - `Dockerfile`, `docker-compose.yml` → container setup
 
