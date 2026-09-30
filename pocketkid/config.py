@@ -16,6 +16,14 @@ LOCALES_DIR = BASE_DIR / "locales"
 VERSION_FILE = BASE_DIR / "VERSION"
 
 SUPPORTED_LANGUAGES = ("en", "it", "de")
+SUPPORTED_CURRENCIES = ("EUR", "USD", "GBP", "CHF")
+CURRENCY_SYMBOLS = {
+    "EUR": "€",
+    "USD": "$",
+    "GBP": "£",
+    "CHF": "CHF",
+}
+DEFAULT_CURRENCY = "EUR"
 PROJECT_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
 APP_VERSION = PROJECT_VERSION
 APP_CREDITS = os.getenv("APP_CREDITS", "Stefano Perna")

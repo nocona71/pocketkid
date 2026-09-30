@@ -6,6 +6,11 @@ from .extensions import db
 from werkzeug.security import check_password_hash
 
 
+class AppSetting(db.Model):
+    key = db.Column(db.String(64), primary_key=True)
+    value = db.Column(db.String(255), nullable=False)
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)

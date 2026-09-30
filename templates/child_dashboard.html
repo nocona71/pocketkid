@@ -3,11 +3,11 @@
 {% block content %}
 <section class="card balance-card">
   <p class="muted">{{ _('debt') if wallet.balance < 0 else _('available_balance') }}</p>
-  <p class="balance {{ 'negative' if wallet.balance < 0 else '' }}">{{ wallet.balance|eur }}</p>
-  <p class="muted">{{ _('overdraft_limit') }}: {{ wallet.minimum_balance|eur }}</p>
+  <p class="balance {{ 'negative' if wallet.balance < 0 else '' }}">{{ wallet.balance|currency }}</p>
+  <p class="muted">{{ _('overdraft_limit') }}: {{ wallet.minimum_balance|currency }}</p>
   {% if wallet.balance < wallet.minimum_balance %}
     <div class="overdraft-warning" role="status">
-      <strong>{{ _('overdraft_limit_exceeded_by', amount=(wallet.minimum_balance - wallet.balance)|eur) }}</strong>
+      <strong>{{ _('overdraft_limit_exceeded_by', amount=(wallet.minimum_balance - wallet.balance)|currency) }}</strong>
       <span>{{ _('further_withdrawals_blocked') }}</span>
     </div>
   {% endif %}
@@ -28,7 +28,7 @@
     <label>{{ _('completed_challenge_label') }}
       <select name="challenge_id" required>
         {% for challenge in challenges %}
-          <option value="{{ challenge.id }}">{{ challenge.name }} · {{ challenge.amount|eur }}</option>
+          <option value="{{ challenge.id }}">{{ challenge.name }} · {{ challenge.amount|currency }}</option>
         {% endfor %}
       </select>
     </label>
@@ -42,7 +42,7 @@
 <section class="card hidden" data-request-form="withdrawal">
   <h2>{{ _('request_withdrawal') }}</h2>
   <form method="post" action="{{ url_for('child_request_withdrawal') }}" class="stack">
-    <label>{{ _('amount') }}
+    <label>{{ _('amount') }} ({{ currency_code }})
       <input type="number" step="0.01" min="0.01" name="amount" required>
     </label>
     <label>{{ _('reason') }}
@@ -55,7 +55,7 @@
 <section class="card hidden" data-request-form="deposit">
   <h2>{{ _('request_deposit') }}</h2>
   <form method="post" action="{{ url_for('child_request_deposit') }}" class="stack">
-    <label>{{ _('amount') }}
+    <label>{{ _('amount') }} ({{ currency_code }})
       <input type="number" step="0.01" min="0.01" name="amount" required>
     </label>
     <label>{{ _('description') }}
@@ -74,7 +74,7 @@
         <p class="badge {{ req.status }} request-status">{{ req.status }}</p>
         <p class="muted request-description">{{ req.description }}</p>
         <p class="muted request-time">{{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
-        <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|eur }}</p>
+        <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
       </div>
     {% else %}
       <p class="muted">{{ _('no_requests') }}</p>
@@ -106,7 +106,7 @@
           <p class="label">{{ tx.description }}</p>
           <p class="muted">{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
         </div>
-        <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|eur }}</p>
+        <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|currency }}</p>
       </div>
     {% else %}
       <p class="muted">{{ _('no_operations') }}</p>
