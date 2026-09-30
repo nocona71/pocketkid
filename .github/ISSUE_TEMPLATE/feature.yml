@@ -1,0 +1,49 @@
+name: Feature proposal
+description: Propose a user-facing capability or meaningful behavior change
+title: "[Feature] "
+labels:
+  - "type:feature"
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or operational problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the result without prescribing unnecessary implementation details.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable behaviors that determine whether the work is complete.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and risks
+      description: Note authorization, migration, privacy, mobile, or upstream-compatibility concerns.
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Out of scope
+      description: State adjacent behavior that this proposal should not add.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched the backlog and existing issues for duplicates.
+          required: true
+        - label: This proposal preserves parent and child account isolation.
+          required: true

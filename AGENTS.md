@@ -90,6 +90,7 @@ The current direction is:
 5. Potentially allow children to create or edit their own transactions.
 6. Add a reliable audit history for transaction changes.
 7. Keep the application lightweight and mobile-friendly.
+8. Use currency everywhere where amounts are visible / editable. Make Currency configurable for parents
 
 These goals describe direction, not permission to implement all of them
 in one change.

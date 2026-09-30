@@ -1,0 +1,46 @@
+name: Bug report
+description: Report reproducible behavior that differs from the intended behavior
+title: "[Bug] "
+labels:
+  - "type:bug"
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include the account role, relevant data, and the smallest repeatable sequence.
+      placeholder: |
+        1. Sign in as ...
+        2. Open ...
+        3. Submit ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Describe affected users, data, authorization boundaries, or workarounds.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Version or commit, browser, deployment method, and other relevant details.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched for an existing issue describing this problem.
+          required: true
+        - label: I removed passwords, private keys, personal data, and other secrets.
+          required: true
