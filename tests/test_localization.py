@@ -59,6 +59,66 @@ class LocaleCatalogTests(unittest.TestCase):
         self.assertIn("filename='css/styles.css', v=app_version", base_template)
         self.assertIn("filename='js/app.js', v=app_version", base_template)
 
+    def test_ui_uses_family_ledger_terminology_in_every_language(self):
+        expected_by_language = {
+            "en": {
+                "family_wallet": "Family ledger",
+                "children_wallets": "Children accounts",
+                "available_balance": "Balance",
+                "debt": "Negative balance",
+                "overdraft_limit": "Minimum balance",
+                "deposit": "Credit",
+                "withdraw": "Debit",
+                "transaction_details": "Entry details",
+                "history": "Ledger history",
+                "virtual_wallet": "Account",
+            },
+            "de": {
+                "family_wallet": "Familien-Kassenbuch",
+                "children_wallets": "Kinderkonten",
+                "available_balance": "Kontostand",
+                "debt": "Negativer Kontostand",
+                "overdraft_limit": "Mindestkontostand",
+                "deposit": "Gutschrift",
+                "withdraw": "Sollbuchung",
+                "transaction_details": "Buchungsdetails",
+                "history": "Buchungsverlauf",
+                "virtual_wallet": "Konto",
+            },
+            "it": {
+                "family_wallet": "Registro familiare",
+                "children_wallets": "Conti dei figli",
+                "available_balance": "Saldo",
+                "debt": "Saldo negativo",
+                "overdraft_limit": "Saldo minimo",
+                "deposit": "Accredito",
+                "withdraw": "Addebito",
+                "transaction_details": "Dettagli registrazione",
+                "history": "Cronologia del registro",
+                "virtual_wallet": "Conto",
+            },
+        }
+
+        for language, expected in expected_by_language.items():
+            catalog = json.loads((LOCALES_DIR / f"{language}.json").read_text(encoding="utf-8"))
+            with self.subTest(language=language):
+                self.assertEqual({key: catalog[key] for key in expected}, expected)
+
+    def test_family_ledger_decision_documents_product_and_compatibility_boundaries(self):
+        decision = (
+            LOCALES_DIR.parent / "docs/decisions/0002-family-ledger-product-model.md"
+        ).read_text(encoding="utf-8")
+
+        for expected in (
+            "positive: money is owed or credited to the child",
+            "negative: money is owed by the child to the family",
+            "### Preferred terminology",
+            "### Compatibility boundary",
+            "Preserve server-side parent/child account isolation",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, decision)
+
 
 class GermanLocalizationTests(unittest.TestCase):
     @classmethod

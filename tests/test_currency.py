@@ -91,7 +91,7 @@ class CurrencySettingsTests(unittest.TestCase):
         self.assertIn(b"$ -12.34", parent_dashboard.data)
         self.assertIn(b"$ 4.50", parent_dashboard.data)
         self.assertIn(b"$ -2.50", parent_wallet.data)
-        self.assertIn(b"Overdraft limit (USD)", parent_wallet.data)
+        self.assertIn(b"Minimum balance (USD)", parent_wallet.data)
         self.assertIn(b"Amount (USD)", parent_wallet.data)
         self.assertIn(b"$ -12.34", child_dashboard.data)
         self.assertIn(b"Amount (USD)", child_dashboard.data)

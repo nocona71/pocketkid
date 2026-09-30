@@ -103,11 +103,11 @@ class TransactionDetailsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         for expected in (
-            b"Transaction details",
+            b"Entry details",
             b"Account",
             b"Child",
-            b"Transaction type",
-            b"Withdrawal",
+            b"Entry type",
+            b"Proposed debit",
             b"\xe2\x82\xac -3.50",
             b"Date and time",
             b"Library book",
@@ -128,7 +128,7 @@ class TransactionDetailsTests(unittest.TestCase):
         response = self.client.get(f"/transactions/{transaction_id}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Parent deposit", response.data)
+        self.assertIn(b"Parent credit", response.data)
         self.assertIn(b"Not required", response.data)
         self.assertNotIn(b"actor_action_", response.data)
 
@@ -154,7 +154,7 @@ class TransactionDetailsTests(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Transaction not found", response.data)
+        self.assertIn(b"Entry not found", response.data)
         self.assertNotIn(b"Private gift", response.data)
         self.assertNotIn(b"Other-child", response.data)
 
@@ -179,7 +179,7 @@ class TransactionDetailsTests(unittest.TestCase):
         self.assertEqual(details.status_code, 200)
         for expected in (
             b"Request details",
-            b"Withdrawal",
+            b"Debit",
             b"\xe2\x82\xac 323423.00",
             b"New aquarium",
             b"Requested by",
