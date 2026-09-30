@@ -24,6 +24,13 @@ CURRENCY_SYMBOLS = {
     "CHF": "CHF",
 }
 DEFAULT_CURRENCY = "EUR"
+DATE_FORMATS = {
+    "DD/MM/YYYY": "%d/%m/%Y",
+    "DD.MM.YYYY": "%d.%m.%Y",
+    "MM/DD/YYYY": "%m/%d/%Y",
+    "YYYY-MM-DD": "%Y-%m-%d",
+}
+DEFAULT_DATE_FORMAT = "DD/MM/YYYY"
 PROJECT_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
 APP_VERSION = PROJECT_VERSION
 APP_CREDITS = os.getenv("APP_CREDITS", "Stefano Perna")

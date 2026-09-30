@@ -70,7 +70,7 @@
       <a class="list-item transaction-list-item" href="{{ url_for('transaction_details', transaction_id=tx.id) }}">
         <div>
           <p class="label">{{ tx.description }}</p>
-          <p class="muted">{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+          <p class="muted">{{ tx.created_at|display_datetime }}</p>
         </div>
         <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|currency }}</p>
       </a>

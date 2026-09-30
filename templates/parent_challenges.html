@@ -26,7 +26,7 @@
         <div class="challenge-top-row">
           <div>
           <p class="label">{{ challenge.name }}</p>
-          <p class="muted">{{ challenge.created_at.strftime('%d/%m/%Y') }}</p>
+          <p class="muted">{{ challenge.created_at|display_date }}</p>
           </div>
           <p class="amount {{ 'positive' if challenge.amount >= 0 else 'negative' }}">{{ challenge.amount|currency }}</p>
         </div>

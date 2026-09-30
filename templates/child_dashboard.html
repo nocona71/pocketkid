@@ -73,7 +73,7 @@
         <p class="label request-kind">{{ _('request_type_reward') if req.request_type == 'reward' else (_('request_type_withdrawal') if req.request_type == 'withdrawal' else _('request_type_deposit')) }}</p>
         <p class="badge {{ req.status }} request-status">{{ req.status }}</p>
         <p class="muted request-description">{{ req.description }}</p>
-        <p class="muted request-time">{{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p class="muted request-time">{{ req.created_at|display_datetime }}</p>
         <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
       </a>
     {% else %}
@@ -104,7 +104,7 @@
       <a class="list-item transaction-list-item" href="{{ url_for('transaction_details', transaction_id=tx.id) }}">
         <div>
           <p class="label">{{ tx.description }}</p>
-          <p class="muted">{{ tx.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+          <p class="muted">{{ tx.created_at|display_datetime }}</p>
         </div>
         <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|currency }}</p>
       </a>

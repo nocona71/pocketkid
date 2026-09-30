@@ -19,7 +19,9 @@ from .config import (
     APP_UPSTREAM_REPO_URL,
     APP_VERSION,
     CURRENCY_SYMBOLS,
+    DATE_FORMATS,
     DEFAULT_CURRENCY,
+    DEFAULT_DATE_FORMAT,
     LOCALES_DIR,
     SUPPORTED_CURRENCIES,
     SUPPORTED_LANGUAGES,
@@ -104,6 +106,36 @@ def format_currency(value: Decimal) -> str:
     return f"{CURRENCY_SYMBOLS[currency_code]} {Decimal(value):.2f}"
 
 
+def get_date_format() -> str:
+    if hasattr(g, "date_format"):
+        return g.date_format
+    setting = db.session.get(AppSetting, "date_format")
+    g.date_format = (
+        setting.value
+        if setting and setting.value in DATE_FORMATS
+        else DEFAULT_DATE_FORMAT
+    )
+    return g.date_format
+
+
+def set_date_format(date_format: str) -> None:
+    setting = db.session.get(AppSetting, "date_format")
+    if setting is None:
+        setting = AppSetting(key="date_format", value=date_format)
+        db.session.add(setting)
+    else:
+        setting.value = date_format
+    g.date_format = date_format
+
+
+def format_date(value: datetime) -> str:
+    return normalize_dt(value).strftime(DATE_FORMATS[get_date_format()])
+
+
+def format_datetime(value: datetime) -> str:
+    return f"{format_date(value)} {normalize_dt(value).strftime('%H:%M')}"
+
+
 def capitalize_name(value: str | None) -> str:
     if not value:
         return ""
@@ -178,6 +210,7 @@ def tr(key: str, **kwargs) -> str:
 def inject_context():
     locale = get_locale()
     currency_code = get_currency_code()
+    date_format = get_date_format()
     return {
         "user": current_user(),
         "_": tr,
@@ -186,6 +219,8 @@ def inject_context():
         "available_currencies": SUPPORTED_CURRENCIES,
         "currency_code": currency_code,
         "currency_symbols": CURRENCY_SYMBOLS,
+        "available_date_formats": tuple(DATE_FORMATS),
+        "date_format": date_format,
         "app_version": APP_VERSION,
         "app_credits": APP_CREDITS,
         "app_repo_url": APP_REPO_URL,
@@ -492,6 +527,8 @@ def app_guardrails():
 
 def register_common_handlers(app):
     app.template_filter("currency")(format_currency)
+    app.template_filter("display_date")(format_date)
+    app.template_filter("display_datetime")(format_datetime)
     app.template_filter("name_cap")(capitalize_name)
     app.context_processor(inject_context)
     app.before_request(app_guardrails)

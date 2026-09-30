@@ -67,7 +67,7 @@
         </div>
         <p class="muted recurring-description">{{ item.description }}</p>
         <p class="muted recurring-meta">{{ _('frequency') }}: {{ _(item.frequency) }} 
-            <br>{{ _('next_run') }}: {{ item.next_run_at.strftime('%d/%m/%Y') }}</p>
+            <br>{{ _('next_run') }}: {{ item.next_run_at|display_date }}</p>
         <div class="inline-actions recurring-actions">
           <form method="post" action="{{ url_for('toggle_recurring', item_id=item.id) }}">
             <button class="btn btn-secondary" type="submit">{{ _('deactivate') if item.active else _('activate') }}</button>
