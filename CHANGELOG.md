@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/nocona71/pocketkid/compare/fork-v0.2.4...fork-v0.3.0) (2026-09-30)
+
+
+### Features
+
+* add configurable ledger currency ([#46](https://github.com/nocona71/pocketkid/issues/46)) ([19ff811](https://github.com/nocona71/pocketkid/commit/19ff8119f647a7a5663dccfbff51b16db67f826f)), closes [#38](https://github.com/nocona71/pocketkid/issues/38)
+
 ## [0.2.4](https://github.com/nocona71/pocketkid/compare/fork-v0.2.3...fork-v0.2.4) (2026-09-30)
 
 
