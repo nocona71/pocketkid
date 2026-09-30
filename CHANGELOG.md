@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/nocona71/pocketkid/compare/fork-v0.8.0...fork-v0.8.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* hide read notifications from active panel ([#67](https://github.com/nocona71/pocketkid/issues/67)) ([c4880c7](https://github.com/nocona71/pocketkid/commit/c4880c752c745dcdeb55d741441d93744c43d7c9)), closes [#55](https://github.com/nocona71/pocketkid/issues/55)
+
 ## [0.8.0](https://github.com/nocona71/pocketkid/compare/fork-v0.7.0...fork-v0.8.0) (2026-09-30)
 
 
