@@ -18,6 +18,7 @@ from .models import (
     PushSubscription,
     RecurringMovement,
     Transaction,
+    TransactionActorEvent,
     User,
     Wallet,
 )
@@ -348,6 +349,7 @@ def register_routes(app):
                 amount=amount,
                 description=operation_request.description,
                 created_by=user.id,
+                additional_actor_actions=("approved",),
             )
             create_notification(user_id=operation_request.child_id, kind="wallet_credit", message=tr("notif_wallet_credit", amount=format_currency(amount)))
             db.session.commit()
@@ -366,6 +368,7 @@ def register_routes(app):
                 amount=-amount,
                 description=operation_request.description,
                 created_by=user.id,
+                additional_actor_actions=("approved",),
             )
             create_notification(user_id=operation_request.child_id, kind="wallet_debit", message=tr("notif_wallet_debit", amount=format_currency(-amount)))
             db.session.commit()
@@ -523,6 +526,10 @@ def register_routes(app):
 
         Wallet.query.filter_by(child_id=child_id).delete()
         OperationRequest.query.filter_by(child_id=child_id).delete()
+        transaction_ids = db.session.query(Transaction.id).filter_by(child_id=child_id)
+        TransactionActorEvent.query.filter(TransactionActorEvent.transaction_id.in_(transaction_ids)).delete(
+            synchronize_session=False
+        )
         Transaction.query.filter_by(child_id=child_id).delete()
         Notification.query.filter_by(user_id=child_id).delete()
         RecurringMovement.query.filter_by(child_id=child_id).delete()
@@ -770,6 +777,8 @@ def register_routes(app):
                     next_run_at=start_dt,
                     active=True,
                     created_by=actor.id,
+                    created_by_username=actor.username,
+                    created_by_role=actor.role,
                 )
             )
             db.session.commit()

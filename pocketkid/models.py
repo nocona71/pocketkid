@@ -68,6 +68,30 @@ class Transaction(db.Model):
 
     child = db.relationship("User", foreign_keys=[child_id])
     actor = db.relationship("User", foreign_keys=[created_by])
+    actor_events = db.relationship(
+        "TransactionActorEvent",
+        back_populates="transaction",
+        cascade="all, delete-orphan",
+        order_by="TransactionActorEvent.occurred_at",
+        passive_deletes=True,
+    )
+
+
+class TransactionActorEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(
+        db.Integer,
+        db.ForeignKey("transaction.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    action = db.Column(db.String(20), nullable=False)
+    actor_user_id = db.Column(db.Integer, nullable=True)
+    actor_username = db.Column(db.String(80), nullable=False)
+    actor_role = db.Column(db.String(20), nullable=False)
+    occurred_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
+
+    transaction = db.relationship("Transaction", back_populates="actor_events")
 
 
 class Notification(db.Model):
@@ -95,6 +119,8 @@ class RecurringMovement(db.Model):
     hidden = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    created_by_username = db.Column(db.String(80), nullable=False, default="unknown", server_default="unknown")
+    created_by_role = db.Column(db.String(20), nullable=False, default="unknown", server_default="unknown")
 
     child = db.relationship("User", foreign_keys=[child_id])
     challenge = db.relationship("Challenge")
