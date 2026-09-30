@@ -53,6 +53,8 @@
   "send_deposit_request": "Invia proposta di accredito",
   "requests_label": "Richieste",
   "requests_status": "Stato richieste",
+  "request_history": "Cronologia richieste",
+  "view_all_requests": "Mostra tutte le richieste",
   "history": "Cronologia del registro",
   "no_requests": "Nessuna richiesta.",
   "no_operations": "Nessuna registrazione.",

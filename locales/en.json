@@ -53,6 +53,8 @@
   "send_deposit_request": "Send credit proposal",
   "requests_label": "Requests",
   "requests_status": "Requests status",
+  "request_history": "Request history",
+  "view_all_requests": "View all requests",
   "history": "Ledger history",
   "no_requests": "No requests.",
   "no_operations": "No entries.",

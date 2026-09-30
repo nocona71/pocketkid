@@ -47,6 +47,7 @@ from .services import (
 
 def register_routes(app):
     PAGE_SIZE = 10
+    REQUEST_PREVIEW_SIZE = 3
     logger = logging.getLogger("pocketkid.push")
 
     @app.route("/sw.js")
@@ -155,13 +156,13 @@ def register_routes(app):
 
         wallet = get_wallet_by_child(user.id)
         challenges = Challenge.query.filter_by(active=True, hidden=False).order_by(Challenge.name.asc()).all()
-        requests_page = safe_page("requests_page")
         transactions_page = safe_page("transactions_page")
 
-        requests_pagination = (
+        request_preview = (
             OperationRequest.query.filter_by(child_id=user.id)
-            .order_by(OperationRequest.created_at.desc())
-            .paginate(page=requests_page, per_page=PAGE_SIZE, error_out=False)
+            .order_by(OperationRequest.created_at.desc(), OperationRequest.id.desc())
+            .limit(REQUEST_PREVIEW_SIZE + 1)
+            .all()
         )
         transactions_pagination = (
             Transaction.query.filter_by(child_id=user.id)
@@ -172,11 +173,27 @@ def register_routes(app):
             "child_dashboard.html",
             wallet=wallet,
             challenges=challenges,
-            requests=requests_pagination.items,
+            requests=request_preview[:REQUEST_PREVIEW_SIZE],
+            has_more_requests=len(request_preview) > REQUEST_PREVIEW_SIZE,
             transactions=transactions_pagination.items,
             transaction_balances=get_transaction_running_balances(user.id, wallet.balance),
-            requests_pagination=requests_pagination,
             transactions_pagination=transactions_pagination,
+        )
+
+    @app.route("/requests", methods=["GET"])
+    @login_required(role="child")
+    def child_requests():
+        user = current_user()
+        page = safe_page("page")
+        requests_pagination = (
+            OperationRequest.query.filter_by(child_id=user.id)
+            .order_by(OperationRequest.created_at.desc(), OperationRequest.id.desc())
+            .paginate(page=page, per_page=PAGE_SIZE, error_out=False)
+        )
+        return render_template(
+            "child_requests.html",
+            requests=requests_pagination.items,
+            requests_pagination=requests_pagination,
         )
 
     @app.route("/settings", methods=["GET", "POST"])

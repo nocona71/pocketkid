@@ -263,6 +263,10 @@ select {
   gap: 8px;
 }
 
+.request-history-actions {
+  margin-top: 10px;
+}
+
 .parent-dashboard-actions {
   flex-wrap: wrap;
 }
