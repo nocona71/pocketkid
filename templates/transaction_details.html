@@ -28,7 +28,7 @@
     </div>
     <div class="detail-row">
       <dt>{{ _('date_time') }}</dt>
-      <dd>{{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+      <dd>{{ transaction.created_at|display_datetime }} UTC</dd>
     </div>
     <div class="detail-row">
       <dt>{{ _('description') }}</dt>
@@ -60,7 +60,7 @@
         <p class="muted">
           {{ event.actor_username|name_cap }} · {{ _('role_' ~ event.actor_role) if event.actor_role in ['parent', 'child'] else _('unknown_actor') }}
         </p>
-        <p class="muted">{{ event.occurred_at.strftime('%d/%m/%Y %H:%M') }} UTC</p>
+        <p class="muted">{{ event.occurred_at|display_datetime }} UTC</p>
       </div>
     {% else %}
       <p class="muted">{{ _('no_audit_history') }}</p>

@@ -13,7 +13,7 @@ Upstream project: https://github.com/pernastefano/pocketkid
 
 Parents and children access the same app with role-based features:
 - Children can propose reward, credit, and debit entries for their own account.
-- Parents can approve/reject proposals, set per-child minimum balances, choose the ledger currency, record direct or recurring entries, manage users, and review full history.
+- Parents can approve/reject proposals, set per-child minimum balances, choose the ledger currency and date display format, record direct or recurring entries, manage users, and review full history.
 - Transaction creation and approval actors are retained as identity snapshots, even if the user account is later removed.
 
 The signed balance is expressed from the child's perspective: a positive value
@@ -173,6 +173,7 @@ GHCR publishing process.
   - biweekly
   - monthly
 - Reset child passwords
+- Configure the ledger currency and family-wide date display format
 - Configure personal language and password
 
 ### Child

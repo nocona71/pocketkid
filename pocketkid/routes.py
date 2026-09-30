@@ -9,7 +9,7 @@ from flask import flash, redirect, render_template, request, session, url_for
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 
-from .config import SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES
+from .config import DATE_FORMATS, SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES
 from .extensions import db
 from .models import (
     Challenge,
@@ -30,15 +30,16 @@ from .services import (
     create_notification,
     current_user,
     format_currency,
+    format_datetime,
     get_wallet_by_child,
     has_parent,
     login_required,
-    normalize_dt,
     notify_all_parents,
     parse_amount,
     parse_minimum_balance,
     register_transaction,
     set_currency_code,
+    set_date_format,
     tr,
 )
 
@@ -203,6 +204,19 @@ def register_routes(app):
                 set_currency_code(currency_code)
                 db.session.commit()
                 flash(tr("currency_updated"), "success")
+                return redirect(url_for("settings"))
+
+            if action == "date_format":
+                if user.role != "parent":
+                    flash(tr("permission_denied"), "error")
+                    return redirect(url_for("settings"))
+                date_format = request.form.get("date_format", "").strip()
+                if date_format not in DATE_FORMATS:
+                    flash(tr("invalid_date_format"), "error")
+                    return redirect(url_for("settings"))
+                set_date_format(date_format)
+                db.session.commit()
+                flash(tr("date_format_updated"), "success")
                 return redirect(url_for("settings"))
 
             if action == "password":
@@ -900,7 +914,7 @@ def register_routes(app):
                 "kind": n.kind,
                 "message": n.message,
                 "is_read": n.is_read,
-                "created_at": normalize_dt(n.created_at).strftime("%d/%m/%Y %H:%M"),
+                "created_at": format_datetime(n.created_at),
             }
             for n in recent
         ]
@@ -933,8 +947,8 @@ def register_routes(app):
                 {
                     "id": sub.id,
                     "isActive": sub.is_active,
-                    "createdAt": normalize_dt(sub.created_at).strftime("%d/%m/%Y %H:%M"),
-                    "lastSeenAt": normalize_dt(sub.last_seen_at).strftime("%d/%m/%Y %H:%M"),
+                    "createdAt": format_datetime(sub.created_at),
+                    "lastSeenAt": format_datetime(sub.last_seen_at),
                     "endpointPreview": f"{sub.endpoint[:80]}..." if len(sub.endpoint) > 80 else sub.endpoint,
                 }
                 for sub in subscriptions

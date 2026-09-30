@@ -36,6 +36,22 @@
     <button class="btn" type="submit">{{ _('save_currency') }}</button>
   </form>
 </section>
+
+<section class="card">
+  <h2>{{ _('date_format_settings') }}</h2>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="date_format">
+    <label>{{ _('date_format') }}
+      <select name="date_format">
+        {% for format in available_date_formats %}
+        <option value="{{ format }}" {% if date_format == format %}selected{% endif %}>{{ format }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <p class="muted">{{ _('date_format_change_hint') }}</p>
+    <button class="btn" type="submit">{{ _('save_date_format') }}</button>
+  </form>
+</section>
 {% endif %}
 
 <section class="card">

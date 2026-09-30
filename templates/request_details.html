@@ -26,7 +26,7 @@
     </div>
     <div class="detail-row">
       <dt>{{ _('submitted_at') }}</dt>
-      <dd>{{ operation_request.created_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+      <dd>{{ operation_request.created_at|display_datetime }} UTC</dd>
     </div>
     <div class="detail-row">
       <dt>{{ _('description') }}</dt>
@@ -49,7 +49,7 @@
     {% if operation_request.reviewed_at %}
       <div class="detail-row">
         <dt>{{ _('reviewed_at') }}</dt>
-        <dd>{{ operation_request.reviewed_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+        <dd>{{ operation_request.reviewed_at|display_datetime }} UTC</dd>
       </div>
       <div class="detail-row">
         <dt>{{ _('reviewed_by') }}</dt>
