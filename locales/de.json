@@ -53,6 +53,8 @@
   "send_deposit_request": "Gutschrift vorschlagen",
   "requests_label": "Anfragen",
   "requests_status": "Anfragestatus",
+  "request_history": "Anfrageverlauf",
+  "view_all_requests": "Alle Anfragen anzeigen",
   "history": "Buchungsverlauf",
   "no_requests": "Keine Anfragen.",
   "no_operations": "Keine Buchungen.",

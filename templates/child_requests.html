@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('request_history') }} - {{ _('app_name') }}{% endblock %}
+{% block content %}
+<nav class="actions-row">
+  <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">{{ _('back_dashboard') }}</a>
+</nav>
+
+<section class="card">
+  <h2>{{ _('request_history') }}</h2>
+  <div class="list">
+    {% for req in requests %}
+      <a class="list-item request-item" href="{{ url_for('request_details', request_id=req.id) }}">
+        <p class="label request-kind">{{ _('request_type_reward') if req.request_type == 'reward' else (_('request_type_withdrawal') if req.request_type == 'withdrawal' else _('request_type_deposit')) }}</p>
+        <p class="badge {{ req.status }} request-status">{{ req.status }}</p>
+        <p class="muted request-description">{{ req.description }}</p>
+        <p class="muted request-time">{{ req.created_at|display_datetime }}</p>
+        <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
+      </a>
+    {% else %}
+      <p class="muted">{{ _('no_requests') }}</p>
+    {% endfor %}
+  </div>
+  {% if requests_pagination.pages > 1 %}
+  <nav class="pagination-row">
+    {% if requests_pagination.has_prev %}
+      <a class="btn btn-secondary" href="{{ url_for('child_requests', page=requests_pagination.prev_num) }}">{{ _('prev') }}</a>
+    {% else %}
+      <span></span>
+    {% endif %}
+    <span class="muted pagination-label">{{ requests_pagination.page }}/{{ requests_pagination.pages }}</span>
+    {% if requests_pagination.has_next %}
+      <a class="btn btn-secondary" href="{{ url_for('child_requests', page=requests_pagination.next_num) }}">{{ _('next') }}</a>
+    {% else %}
+      <span></span>
+    {% endif %}
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}
