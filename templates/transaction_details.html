@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('transaction_details') }} - {{ _('app_name') }}{% endblock %}
+{% block content %}
+<nav class="actions-row">
+  {% if user.role == 'parent' %}
+    <a class="btn btn-secondary" href="{{ url_for('parent_child_wallet', child_id=transaction.child_id) }}">{{ _('back_wallet') }}</a>
+  {% else %}
+    <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">{{ _('back_dashboard') }}</a>
+  {% endif %}
+</nav>
+
+<section class="card">
+  <h2>{{ _('transaction_details') }}</h2>
+  <dl class="detail-list">
+    {% if user.role == 'parent' %}
+      <div class="detail-row">
+        <dt>{{ _('account') }}</dt>
+        <dd>{{ transaction.child.username|name_cap }}</dd>
+      </div>
+    {% endif %}
+    <div class="detail-row">
+      <dt>{{ _('transaction_type') }}</dt>
+      <dd>{{ _('transaction_kind_' ~ transaction.kind) }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('amount') }}</dt>
+      <dd class="amount {{ 'positive' if transaction.amount >= 0 else 'negative' }}">{{ transaction.amount|currency }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('date_time') }}</dt>
+      <dd>{{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }} UTC</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('description') }}</dt>
+      <dd>{{ transaction.description }}</dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('creator') }}</dt>
+      <dd>
+        {% if creator_event %}
+          {{ creator_event.actor_username|name_cap }} · {{ _('role_' ~ creator_event.actor_role) if creator_event.actor_role in ['parent', 'child'] else _('unknown_actor') }}
+        {% else %}
+          {{ _('unknown_actor') }}
+        {% endif %}
+      </dd>
+    </div>
+    <div class="detail-row">
+      <dt>{{ _('approval_status') }}</dt>
+      <dd><span class="badge {{ 'approved' if approval_status == 'approved' else 'neutral' }}">{{ _('approval_' ~ approval_status) }}</span></dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>{{ _('audit_history') }}</h2>
+  <div class="list">
+    {% for event in transaction.actor_events %}
+      <div class="list-item block audit-event">
+        <p class="label">{{ _('actor_action_' ~ event.action) }}</p>
+        <p class="muted">
+          {{ event.actor_username|name_cap }} · {{ _('role_' ~ event.actor_role) if event.actor_role in ['parent', 'child'] else _('unknown_actor') }}
+        </p>
+        <p class="muted">{{ event.occurred_at.strftime('%d/%m/%Y %H:%M') }} UTC</p>
+      </div>
+    {% else %}
+      <p class="muted">{{ _('no_audit_history') }}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

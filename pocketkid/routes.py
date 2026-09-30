@@ -403,6 +403,51 @@ def register_routes(app):
             transactions_pagination=tx_pagination,
         )
 
+    @app.route("/transactions/<int:transaction_id>", methods=["GET"])
+    @login_required()
+    def transaction_details(transaction_id: int):
+        user = current_user()
+        transaction = db.session.get(Transaction, transaction_id)
+        if not transaction or (user.role == "child" and transaction.child_id != user.id):
+            flash(tr("transaction_not_found"), "error")
+            return redirect(url_for("dashboard"))
+        if user.role not in {"parent", "child"}:
+            flash(tr("permission_denied"), "error")
+            return redirect(url_for("dashboard"))
+
+        creator_event = next(
+            (event for event in transaction.actor_events if event.action == "created"),
+            None,
+        )
+        approval_status = (
+            "approved"
+            if any(event.action == "approved" for event in transaction.actor_events)
+            else "not_required"
+        )
+        return render_template(
+            "transaction_details.html",
+            transaction=transaction,
+            creator_event=creator_event,
+            approval_status=approval_status,
+        )
+
+    @app.route("/requests/<int:request_id>", methods=["GET"])
+    @login_required()
+    def request_details(request_id: int):
+        user = current_user()
+        operation_request = db.session.get(OperationRequest, request_id)
+        if not operation_request or (user.role == "child" and operation_request.child_id != user.id):
+            flash(tr("request_not_found"), "error")
+            return redirect(url_for("dashboard"))
+        if user.role not in {"parent", "child"}:
+            flash(tr("permission_denied"), "error")
+            return redirect(url_for("dashboard"))
+
+        return render_template(
+            "request_details.html",
+            operation_request=operation_request,
+        )
+
     @app.route("/parent/child/<int:child_id>/manual", methods=["POST"])
     @login_required(role="parent")
     def parent_manual_movement(child_id: int):
