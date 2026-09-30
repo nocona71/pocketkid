@@ -20,6 +20,24 @@
   </form>
 </section>
 
+{% if user.role == 'parent' %}
+<section class="card">
+  <h2>{{ _('currency_settings') }}</h2>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="currency">
+    <label>{{ _('ledger_currency') }}
+      <select name="currency">
+        {% for code in available_currencies %}
+        <option value="{{ code }}" {% if currency_code == code %}selected{% endif %}>{{ code }}{% if currency_symbols[code] != code %} ({{ currency_symbols[code] }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <p class="muted">{{ _('currency_change_hint') }}</p>
+    <button class="btn" type="submit">{{ _('save_currency') }}</button>
+  </form>
+</section>
+{% endif %}
+
 <section class="card">
   <h2>{{ _('change_password') }}</h2>
   <form method="post" class="stack">

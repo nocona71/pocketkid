@@ -11,7 +11,7 @@
     <label>{{ _('challenge_name') }}
       <input name="name" required>
     </label>
-    <label>{{ _('default_reward') }}
+    <label>{{ _('default_reward') }} ({{ currency_code }})
       <input type="number" name="amount" step="0.01" min="0.01" required>
     </label>
     <button class="btn" type="submit">{{ _('add_challenge') }}</button>
@@ -28,7 +28,7 @@
           <p class="label">{{ challenge.name }}</p>
           <p class="muted">{{ challenge.created_at.strftime('%d/%m/%Y') }}</p>
           </div>
-          <p class="amount {{ 'positive' if challenge.amount >= 0 else 'negative' }}">{{ challenge.amount|eur }}</p>
+          <p class="amount {{ 'positive' if challenge.amount >= 0 else 'negative' }}">{{ challenge.amount|currency }}</p>
         </div>
         <div class="inline-actions challenge-actions">
           <form method="post" action="{{ url_for('toggle_challenge', challenge_id=challenge.id) }}">

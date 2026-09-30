@@ -18,7 +18,7 @@
           <p class="muted">{{ _('pending_count', count=row.pending_count) }}</p>
         </div>
         <p class="amount {{ 'negative' if row.wallet.balance < 0 else 'positive' }}">
-          {{ row.wallet.balance|eur }}{% if row.wallet.balance < 0 %} · {{ _('debt') }}{% endif %}
+          {{ row.wallet.balance|currency }}{% if row.wallet.balance < 0 %} · {{ _('debt') }}{% endif %}
         </p>
       </a>
     {% else %}
@@ -51,7 +51,7 @@
         <p class="badge pending request-status">{{ req.status }}</p>
         <p class="muted request-description">{{ req.description }}</p>
         <p class="muted request-time">{{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
-        <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|eur }}</p>
+        <p class="amount request-amount {{ 'positive' if req.request_type in ['reward', 'deposit'] else 'negative' }}">{{ req.amount|currency }}</p>
         <div class="inline-actions parent-request-actions">
           <form method="post" action="{{ url_for('parent_decide_request', request_id=req.id) }}">
             <input type="hidden" name="decision" value="approve">

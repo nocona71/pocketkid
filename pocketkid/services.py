@@ -18,11 +18,14 @@ from .config import (
     APP_UPSTREAM_COMMIT,
     APP_UPSTREAM_REPO_URL,
     APP_VERSION,
+    CURRENCY_SYMBOLS,
+    DEFAULT_CURRENCY,
     LOCALES_DIR,
+    SUPPORTED_CURRENCIES,
     SUPPORTED_LANGUAGES,
 )
 from .extensions import db
-from .models import Notification, PushSubscription, RecurringMovement, Transaction, User, Wallet
+from .models import AppSetting, Notification, PushSubscription, RecurringMovement, Transaction, User, Wallet
 
 
 logger = logging.getLogger("pocketkid.push")
@@ -63,8 +66,31 @@ def load_translations() -> dict[str, dict[str, str]]:
 TRANSLATIONS = load_translations()
 
 
-def eur_filter(value: Decimal) -> str:
-    return f"€ {Decimal(value):.2f}"
+def get_currency_code() -> str:
+    if hasattr(g, "currency_code"):
+        return g.currency_code
+    setting = db.session.get(AppSetting, "currency")
+    g.currency_code = (
+        setting.value
+        if setting and setting.value in SUPPORTED_CURRENCIES
+        else DEFAULT_CURRENCY
+    )
+    return g.currency_code
+
+
+def set_currency_code(currency_code: str) -> None:
+    setting = db.session.get(AppSetting, "currency")
+    if setting is None:
+        setting = AppSetting(key="currency", value=currency_code)
+        db.session.add(setting)
+    else:
+        setting.value = currency_code
+    g.currency_code = currency_code
+
+
+def format_currency(value: Decimal) -> str:
+    currency_code = get_currency_code()
+    return f"{CURRENCY_SYMBOLS[currency_code]} {Decimal(value):.2f}"
 
 
 def capitalize_name(value: str | None) -> str:
@@ -140,11 +166,15 @@ def tr(key: str, **kwargs) -> str:
 
 def inject_context():
     locale = get_locale()
+    currency_code = get_currency_code()
     return {
         "user": current_user(),
         "_": tr,
         "current_locale": locale,
         "available_languages": SUPPORTED_LANGUAGES,
+        "available_currencies": SUPPORTED_CURRENCIES,
+        "currency_code": currency_code,
+        "currency_symbols": CURRENCY_SYMBOLS,
         "app_version": APP_VERSION,
         "app_credits": APP_CREDITS,
         "app_repo_url": APP_REPO_URL,
@@ -299,8 +329,8 @@ def process_recurring_movements():
                 message=tr(
                     "notif_recurring_failed",
                     child=capitalize_name(item.child.username),
-                    amount=f"{amount:.2f}",
-                    limit=f"{Decimal(wallet.minimum_balance):.2f}",
+                    amount=format_currency(amount),
+                    limit=format_currency(Decimal(wallet.minimum_balance)),
                 ),
             )
             item.next_run_at = next_run(item.next_run_at, item.frequency)
@@ -318,7 +348,7 @@ def process_recurring_movements():
         create_notification(
             user_id=item.child_id,
             kind="wallet_credit" if signed >= 0 else "wallet_debit",
-            message=tr("notif_recurring_applied", amount=f"{signed:.2f}", description=item.description),
+            message=tr("notif_recurring_applied", amount=format_currency(signed), description=item.description),
         )
         item.next_run_at = next_run(item.next_run_at, item.frequency)
 
@@ -341,7 +371,7 @@ def app_guardrails():
 
 
 def register_common_handlers(app):
-    app.template_filter("eur")(eur_filter)
+    app.template_filter("currency")(format_currency)
     app.template_filter("name_cap")(capitalize_name)
     app.context_processor(inject_context)
     app.before_request(app_guardrails)

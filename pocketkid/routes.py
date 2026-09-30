@@ -9,7 +9,7 @@ from flask import flash, redirect, render_template, request, session, url_for
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 
-from .config import SUPPORTED_LANGUAGES
+from .config import SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES
 from .extensions import db
 from .models import (
     Challenge,
@@ -28,6 +28,7 @@ from .services import (
     capitalize_name,
     create_notification,
     current_user,
+    format_currency,
     get_wallet_by_child,
     has_parent,
     login_required,
@@ -36,6 +37,7 @@ from .services import (
     parse_amount,
     parse_minimum_balance,
     register_transaction,
+    set_currency_code,
     tr,
 )
 
@@ -189,6 +191,19 @@ def register_routes(app):
                     flash(tr("language_updated"), "success")
                 return redirect(url_for("settings"))
 
+            if action == "currency":
+                if user.role != "parent":
+                    flash(tr("permission_denied"), "error")
+                    return redirect(url_for("settings"))
+                currency_code = request.form.get("currency", "").strip().upper()
+                if currency_code not in SUPPORTED_CURRENCIES:
+                    flash(tr("invalid_currency"), "error")
+                    return redirect(url_for("settings"))
+                set_currency_code(currency_code)
+                db.session.commit()
+                flash(tr("currency_updated"), "success")
+                return redirect(url_for("settings"))
+
             if action == "password":
                 current_password = request.form.get("current_password", "")
                 new_password = request.form.get("new_password", "")
@@ -234,7 +249,7 @@ def register_routes(app):
                 "notif_reward_request",
                 child=capitalize_name(user.username),
                 challenge=challenge.name,
-                amount=f"{Decimal(challenge.amount):.2f}",
+                amount=format_currency(Decimal(challenge.amount)),
             ),
         )
         db.session.commit()
@@ -263,7 +278,7 @@ def register_routes(app):
         )
         notify_all_parents(
             kind="approval_required",
-            message=tr("notif_withdraw_request", child=capitalize_name(user.username), amount=f"{amount:.2f}"),
+            message=tr("notif_withdraw_request", child=capitalize_name(user.username), amount=format_currency(amount)),
         )
         db.session.commit()
         flash(tr("withdraw_request_sent"), "success")
@@ -291,7 +306,7 @@ def register_routes(app):
         )
         notify_all_parents(
             kind="approval_required",
-            message=tr("notif_deposit_request", child=capitalize_name(user.username), amount=f"{amount:.2f}"),
+            message=tr("notif_deposit_request", child=capitalize_name(user.username), amount=format_currency(amount)),
         )
         db.session.commit()
         flash(tr("deposit_request_sent"), "success")
@@ -334,7 +349,7 @@ def register_routes(app):
                 description=operation_request.description,
                 created_by=user.id,
             )
-            create_notification(user_id=operation_request.child_id, kind="wallet_credit", message=tr("notif_wallet_credit", amount=f"{amount:.2f}"))
+            create_notification(user_id=operation_request.child_id, kind="wallet_credit", message=tr("notif_wallet_credit", amount=format_currency(amount)))
             db.session.commit()
             flash(tr("request_approved_credit"), "success")
             return redirect(url_for("dashboard"))
@@ -352,7 +367,7 @@ def register_routes(app):
                 description=operation_request.description,
                 created_by=user.id,
             )
-            create_notification(user_id=operation_request.child_id, kind="wallet_debit", message=tr("notif_wallet_debit", amount=f"{amount:.2f}"))
+            create_notification(user_id=operation_request.child_id, kind="wallet_debit", message=tr("notif_wallet_debit", amount=format_currency(-amount)))
             db.session.commit()
             flash(tr("request_approved_debit"), "success")
             return redirect(url_for("dashboard"))
@@ -451,7 +466,7 @@ def register_routes(app):
         create_notification(
             user_id=child_id,
             kind="wallet_credit" if signed_amount >= 0 else "wallet_debit",
-            message=tr("notif_parent_movement", amount=f"{signed_amount:.2f}", description=description),
+            message=tr("notif_parent_movement", amount=format_currency(signed_amount), description=description),
         )
         db.session.commit()
         flash(tr("movement_saved"), "success")

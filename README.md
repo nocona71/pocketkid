@@ -11,7 +11,7 @@ Upstream project: https://github.com/pernastefano/pocketkid
 
 Parents and children access the same app with role-based features:
 - Children can submit reward requests linked to challenges, plus withdrawal and generic deposit requests.
-- Parents can approve/reject requests, set per-child overdraft limits, perform manual wallet movements, configure recurring movements, manage users, and review full history.
+- Parents can approve/reject requests, set per-child overdraft limits, choose the ledger currency, perform manual wallet movements, configure recurring movements, manage users, and review full history.
 
 The app is installable as a Progressive Web App (PWA) and supports real Web Push notifications (VAPID) for system-level alerts.
 
