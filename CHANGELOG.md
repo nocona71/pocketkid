@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/nocona71/pocketkid/compare/fork-v0.6.0...fork-v0.7.0) (2026-09-30)
+
+
+### Features
+
+* show running balances in ledger history ([#62](https://github.com/nocona71/pocketkid/issues/62)) ([208faeb](https://github.com/nocona71/pocketkid/commit/208faebd6a84c87d04967503846713b35386835e)), closes [#23](https://github.com/nocona71/pocketkid/issues/23)
+
 ## [0.6.0](https://github.com/nocona71/pocketkid/compare/fork-v0.5.0...fork-v0.6.0) (2026-09-30)
 
 
