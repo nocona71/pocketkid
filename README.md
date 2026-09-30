@@ -177,7 +177,7 @@ GHCR publishing process.
 - Configure personal language and password
 
 ### Child
-- View their signed balance and ledger history
+- View their signed balance and ledger history with the resulting balance after each entry
 - Submit reward request (linked to configured challenge)
 - Propose debit and credit entries
 - Change personal language and password

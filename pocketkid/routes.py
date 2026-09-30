@@ -31,6 +31,7 @@ from .services import (
     current_user,
     format_currency,
     format_datetime,
+    get_transaction_running_balances,
     get_wallet_by_child,
     has_parent,
     login_required,
@@ -164,7 +165,7 @@ def register_routes(app):
         )
         transactions_pagination = (
             Transaction.query.filter_by(child_id=user.id)
-            .order_by(Transaction.created_at.desc())
+            .order_by(Transaction.created_at.desc(), Transaction.id.desc())
             .paginate(page=transactions_page, per_page=PAGE_SIZE, error_out=False)
         )
         return render_template(
@@ -173,6 +174,7 @@ def register_routes(app):
             challenges=challenges,
             requests=requests_pagination.items,
             transactions=transactions_pagination.items,
+            transaction_balances=get_transaction_running_balances(user.id, wallet.balance),
             requests_pagination=requests_pagination,
             transactions_pagination=transactions_pagination,
         )
@@ -404,7 +406,7 @@ def register_routes(app):
         page = safe_page("page")
         tx_pagination = (
             Transaction.query.filter_by(child_id=child_id)
-            .order_by(Transaction.created_at.desc())
+            .order_by(Transaction.created_at.desc(), Transaction.id.desc())
             .paginate(page=page, per_page=PAGE_SIZE, error_out=False)
         )
         challenges = Challenge.query.filter_by(active=True, hidden=False).order_by(Challenge.name.asc()).all()
@@ -413,6 +415,7 @@ def register_routes(app):
             child=child,
             wallet=wallet,
             transactions=tx_pagination.items,
+            transaction_balances=get_transaction_running_balances(child_id, wallet.balance),
             challenges=challenges,
             transactions_pagination=tx_pagination,
         )
