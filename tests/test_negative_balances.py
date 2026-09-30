@@ -54,6 +54,26 @@ class NegativeBalanceTests(unittest.TestCase):
             db.session.commit()
             return parent.id, child.id
 
+    def add_child_wallet(self, username: str, balance: str, minimum_balance: str = "0.00") -> int:
+        with self.app.app_context():
+            child = User(
+                username=username,
+                password_hash="unused",
+                role="child",
+                preferred_language="en",
+            )
+            db.session.add(child)
+            db.session.flush()
+            db.session.add(
+                Wallet(
+                    child_id=child.id,
+                    balance=Decimal(balance),
+                    minimum_balance=Decimal(minimum_balance),
+                )
+            )
+            db.session.commit()
+            return child.id
+
     def login_as(self, user_id: int):
         with self.client.session_transaction() as session:
             session["user_id"] = user_id
@@ -62,6 +82,8 @@ class NegativeBalanceTests(unittest.TestCase):
         cases = (
             ("10.00", "0.00", "3.00", "7.00"),
             ("3.00", "0.00", "3.00", "0.00"),
+            ("0.00", "-3.00", "2.00", "-2.00"),
+            ("-2.00", "-5.00", "2.00", "-4.00"),
             ("2.00", "-1.00", "3.00", "-1.00"),
         )
 
@@ -98,10 +120,182 @@ class NegativeBalanceTests(unittest.TestCase):
                     self.assertEqual(transaction.amount, -Decimal(amount))
                     self.assertEqual(transaction.created_by, parent_id)
 
+    def test_child_withdrawal_request_is_pending_and_bound_to_current_child(self):
+        cases = (
+            ("10.00", "0.00"),
+            ("0.00", "0.00"),
+            ("-3.00", "-10.00"),
+        )
+
+        for starting_balance, minimum_balance in cases:
+            with self.subTest(starting_balance=starting_balance):
+                self.setUp()
+                parent_id, child_id = self.seed_wallet(starting_balance, minimum_balance)
+                other_child_id = self.add_child_wallet("other-child", "50.00")
+                description = f"Request from {starting_balance}"
+
+                self.login_as(child_id)
+                response = self.client.post(
+                    "/child/request/withdrawal",
+                    data={
+                        "amount": "2.00",
+                        "description": description,
+                        "child_id": str(other_child_id),
+                    },
+                )
+
+                self.assertEqual(response.status_code, 302)
+                with self.app.app_context():
+                    operation_request = OperationRequest.query.one()
+                    self.assertEqual(operation_request.child_id, child_id)
+                    self.assertEqual(operation_request.status, "pending")
+                    self.assertEqual(operation_request.amount, Decimal("2.00"))
+                    self.assertEqual(operation_request.description, description)
+                    self.assertEqual(
+                        Wallet.query.filter_by(child_id=child_id).one().balance,
+                        Decimal(starting_balance),
+                    )
+                    self.assertEqual(
+                        Wallet.query.filter_by(child_id=other_child_id).one().balance,
+                        Decimal("50.00"),
+                    )
+                    self.assertEqual(Transaction.query.count(), 0)
+                    self.assertEqual(
+                        Notification.query.filter_by(
+                            user_id=parent_id,
+                            kind="approval_required",
+                        ).count(),
+                        1,
+                    )
+
+    def test_parent_rejects_child_withdrawal_without_moving_balance(self):
+        parent_id, child_id = self.seed_wallet("3.00")
+        self.login_as(child_id)
+        response = self.client.post(
+            "/child/request/withdrawal",
+            data={"amount": "2.00", "description": "Rejected withdrawal"},
+        )
+        self.assertEqual(response.status_code, 302)
+
+        with self.app.app_context():
+            request_id = OperationRequest.query.one().id
+
+        self.login_as(parent_id)
+        response = self.client.post(
+            f"/parent/request/{request_id}/decision",
+            data={"decision": "reject"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        with self.app.app_context():
+            wallet = Wallet.query.filter_by(child_id=child_id).one()
+            operation_request = db.session.get(OperationRequest, request_id)
+            self.assertEqual(wallet.balance, Decimal("3.00"))
+            self.assertEqual(operation_request.status, "rejected")
+            self.assertEqual(operation_request.reviewed_by, parent_id)
+            self.assertIsNotNone(operation_request.reviewed_at)
+            self.assertEqual(Transaction.query.count(), 0)
+
+    def test_child_dashboard_does_not_expose_another_child_records(self):
+        parent_id, child_id = self.seed_wallet("12.34")
+        other_child_id = self.add_child_wallet("other-child", "77.77")
+        with self.app.app_context():
+            db.session.add_all(
+                [
+                    OperationRequest(
+                        request_type="withdrawal",
+                        status="pending",
+                        child_id=child_id,
+                        amount=Decimal("1.00"),
+                        description="Own private request",
+                    ),
+                    OperationRequest(
+                        request_type="withdrawal",
+                        status="pending",
+                        child_id=other_child_id,
+                        amount=Decimal("2.00"),
+                        description="Other private request",
+                    ),
+                    Transaction(
+                        child_id=child_id,
+                        kind="withdrawal",
+                        amount=Decimal("-1.00"),
+                        description="Own private transaction",
+                        created_by=parent_id,
+                    ),
+                    Transaction(
+                        child_id=other_child_id,
+                        kind="withdrawal",
+                        amount=Decimal("-2.00"),
+                        description="Other private transaction",
+                        created_by=parent_id,
+                    ),
+                ]
+            )
+            db.session.commit()
+
+        self.login_as(child_id)
+        response = self.client.get("/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Own private request", response.data)
+        self.assertIn(b"Own private transaction", response.data)
+        self.assertNotIn(b"Other private request", response.data)
+        self.assertNotIn(b"Other private transaction", response.data)
+        self.assertNotIn(b"77.77", response.data)
+
+        response = self.client.get(f"/parent/child/{other_child_id}")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/dashboard")
+
+    def test_child_cannot_approve_or_directly_withdraw_from_another_child(self):
+        _, child_id = self.seed_wallet("5.00")
+        other_child_id = self.add_child_wallet("other-child", "8.00")
+        with self.app.app_context():
+            operation_request = OperationRequest(
+                request_type="withdrawal",
+                status="pending",
+                child_id=other_child_id,
+                amount=Decimal("3.00"),
+                description="Other child withdrawal",
+            )
+            db.session.add(operation_request)
+            db.session.commit()
+            request_id = operation_request.id
+
+        self.login_as(child_id)
+        approval_response = self.client.post(
+            f"/parent/request/{request_id}/decision",
+            data={"decision": "approve"},
+        )
+        manual_response = self.client.post(
+            f"/parent/child/{other_child_id}/manual",
+            data={
+                "movement": "withdraw",
+                "amount": "3.00",
+                "deposit_mode": "free",
+                "description": "Unauthorized withdrawal",
+            },
+        )
+
+        self.assertEqual(approval_response.status_code, 302)
+        self.assertEqual(approval_response.headers["Location"], "/dashboard")
+        self.assertEqual(manual_response.status_code, 302)
+        self.assertEqual(manual_response.headers["Location"], "/dashboard")
+        with self.app.app_context():
+            wallet = Wallet.query.filter_by(child_id=other_child_id).one()
+            operation_request = db.session.get(OperationRequest, request_id)
+            self.assertEqual(wallet.balance, Decimal("8.00"))
+            self.assertEqual(operation_request.status, "pending")
+            self.assertIsNone(operation_request.reviewed_by)
+            self.assertEqual(Transaction.query.count(), 0)
+
     def test_manual_withdrawal_can_cross_zero(self):
         cases = (
             ("10.00", "0.00", "3.00", "7.00"),
             ("3.00", "0.00", "3.00", "0.00"),
+            ("0.00", "-3.00", "2.00", "-2.00"),
+            ("-2.00", "-5.00", "2.00", "-4.00"),
             ("2.00", "-1.00", "3.00", "-1.00"),
         )
 
@@ -134,6 +328,8 @@ class NegativeBalanceTests(unittest.TestCase):
         cases = (
             ("10.00", "0.00", "3.00", "7.00"),
             ("3.00", "0.00", "3.00", "0.00"),
+            ("0.00", "-3.00", "2.00", "-2.00"),
+            ("-2.00", "-5.00", "2.00", "-4.00"),
             ("2.00", "-1.00", "3.00", "-1.00"),
         )
 
