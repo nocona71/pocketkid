@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/nocona71/pocketkid/compare/fork-v0.4.0...fork-v0.5.0) (2026-09-30)
+
+
+### Features
+
+* adopt family ledger terminology ([#57](https://github.com/nocona71/pocketkid/issues/57)) ([259f9b6](https://github.com/nocona71/pocketkid/commit/259f9b64e6f0be2ad355bd4c76da255fedcbf6fc)), closes [#54](https://github.com/nocona71/pocketkid/issues/54)
+
 ## [0.4.0](https://github.com/nocona71/pocketkid/compare/fork-v0.3.0...fork-v0.4.0) (2026-09-30)
 
 
