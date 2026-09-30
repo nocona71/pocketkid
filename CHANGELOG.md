@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/nocona71/pocketkid/compare/fork-v0.5.0...fork-v0.6.0) (2026-09-30)
+
+
+### Features
+
+* add configurable date display formats ([#60](https://github.com/nocona71/pocketkid/issues/60)) ([3ca90a4](https://github.com/nocona71/pocketkid/commit/3ca90a4c8401d3f35bffc03ab0b01287fa14434b)), closes [#59](https://github.com/nocona71/pocketkid/issues/59)
+
 ## [0.5.0](https://github.com/nocona71/pocketkid/compare/fork-v0.4.0...fork-v0.5.0) (2026-09-30)
 
 
