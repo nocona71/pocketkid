@@ -72,7 +72,10 @@
           <p class="label">{{ tx.description }}</p>
           <p class="muted">{{ tx.created_at|display_datetime }}</p>
         </div>
-        <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|currency }}</p>
+        <div class="transaction-values">
+          <p class="amount {{ 'positive' if tx.amount >= 0 else 'negative' }}">{{ tx.amount|currency }}</p>
+          <p class="muted resulting-balance">{{ _('available_balance') }}: {{ transaction_balances[tx.id]|currency }}</p>
+        </div>
       </a>
     {% else %}
       <p class="muted">{{ _('no_operations') }}</p>

@@ -177,6 +177,17 @@ main {
   color: var(--negative);
 }
 
+.transaction-values {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+}
+
+.resulting-balance {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .stack {
   display: grid;
   gap: 10px;

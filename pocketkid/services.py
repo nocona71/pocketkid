@@ -168,6 +168,23 @@ def can_debit(wallet: Wallet, amount: Decimal) -> bool:
     return resulting_balance >= Decimal(wallet.minimum_balance)
 
 
+def get_transaction_running_balances(child_id: int, current_balance: Decimal) -> dict[int, Decimal]:
+    transactions = (
+        Transaction.query.filter_by(child_id=child_id)
+        .order_by(Transaction.created_at.asc(), Transaction.id.asc())
+        .all()
+    )
+    recorded_change = sum((Decimal(transaction.amount) for transaction in transactions), Decimal("0.00"))
+    running_balance = Decimal(current_balance) - recorded_change
+    resulting_balances: dict[int, Decimal] = {}
+
+    for transaction in transactions:
+        running_balance += Decimal(transaction.amount)
+        resulting_balances[transaction.id] = running_balance
+
+    return resulting_balances
+
+
 def normalize_dt(value: datetime) -> datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=UTC)
