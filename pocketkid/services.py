@@ -25,11 +25,22 @@ from .config import (
     SUPPORTED_LANGUAGES,
 )
 from .extensions import db
-from .models import AppSetting, Notification, PushSubscription, RecurringMovement, Transaction, User, Wallet
+from .models import (
+    AppSetting,
+    Notification,
+    PushSubscription,
+    RecurringMovement,
+    Transaction,
+    TransactionActorEvent,
+    User,
+    Wallet,
+)
 
 
 logger = logging.getLogger("pocketkid.push")
 PUSH_RUNTIME_DISABLED = False
+TRANSACTION_ACTOR_ACTIONS = {"created", "approved", "changed", "reversed", "deleted"}
+APPROVAL_TRANSACTION_KINDS = {"reward", "requested_deposit", "withdrawal"}
 
 
 def load_vapid_keys() -> tuple[str, str]:
@@ -215,11 +226,41 @@ def ensure_schema_updates():
     if "hidden" not in recurring_columns:
         db.session.execute(text("ALTER TABLE recurring_movement ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT 0"))
         db.session.commit()
+    if "created_by_username" not in recurring_columns:
+        db.session.execute(
+            text("ALTER TABLE recurring_movement ADD COLUMN created_by_username VARCHAR(80) NOT NULL DEFAULT 'unknown'")
+        )
+        db.session.commit()
+    if "created_by_role" not in recurring_columns:
+        db.session.execute(
+            text("ALTER TABLE recurring_movement ADD COLUMN created_by_role VARCHAR(20) NOT NULL DEFAULT 'unknown'")
+        )
+        db.session.commit()
+
+    db.session.execute(
+        text(
+            """
+            UPDATE recurring_movement
+            SET created_by_username = COALESCE(
+                    (SELECT username FROM user WHERE user.id = recurring_movement.created_by),
+                    created_by_username
+                ),
+                created_by_role = COALESCE(
+                    (SELECT role FROM user WHERE user.id = recurring_movement.created_by),
+                    created_by_role
+                )
+            WHERE created_by_username = 'unknown' OR created_by_role = 'unknown'
+            """
+        )
+    )
 
     wallet_columns = [row[1] for row in db.session.execute(text("PRAGMA table_info(wallet)"))]
     if "minimum_balance" not in wallet_columns:
         db.session.execute(text("ALTER TABLE wallet ADD COLUMN minimum_balance NUMERIC(10, 2) NOT NULL DEFAULT 0"))
         db.session.commit()
+
+    backfill_transaction_actor_events()
+    db.session.commit()
 
 
 def get_wallet_by_child(child_id: int) -> Wallet:
@@ -231,16 +272,93 @@ def get_wallet_by_child(child_id: int) -> Wallet:
     return wallet
 
 
-def register_transaction(*, child_id: int, kind: str, amount: Decimal, description: str, created_by: int | None):
-    db.session.add(
-        Transaction(
-            child_id=child_id,
-            kind=kind,
-            amount=amount,
-            description=description,
-            created_by=created_by,
-        )
+def resolve_actor_identity(
+    actor_user_id: int | None,
+    actor_username: str | None = None,
+    actor_role: str | None = None,
+) -> tuple[str, str]:
+    if actor_username and actor_role:
+        return actor_username, actor_role
+    actor = db.session.get(User, actor_user_id) if actor_user_id is not None else None
+    if actor is not None:
+        return actor.username, actor.role
+    fallback_name = actor_username or (f"deleted-user-{actor_user_id}" if actor_user_id is not None else "system")
+    return fallback_name, actor_role or "unknown"
+
+
+def record_transaction_actor(
+    *,
+    transaction: Transaction,
+    action: str,
+    actor_user_id: int | None,
+    actor_username: str | None = None,
+    actor_role: str | None = None,
+    occurred_at: datetime | None = None,
+) -> TransactionActorEvent:
+    if action not in TRANSACTION_ACTOR_ACTIONS:
+        raise ValueError(f"Unsupported transaction actor action: {action}")
+    username, role = resolve_actor_identity(actor_user_id, actor_username, actor_role)
+    event = TransactionActorEvent(
+        transaction=transaction,
+        action=action,
+        actor_user_id=actor_user_id,
+        actor_username=username,
+        actor_role=role,
+        occurred_at=occurred_at or datetime.now(UTC),
     )
+    db.session.add(event)
+    return event
+
+
+def backfill_transaction_actor_events() -> None:
+    for transaction in Transaction.query.order_by(Transaction.id.asc()).all():
+        expected_actions = {"created"}
+        if transaction.kind in APPROVAL_TRANSACTION_KINDS:
+            expected_actions.add("approved")
+        existing_actions = {
+            action
+            for (action,) in db.session.query(TransactionActorEvent.action)
+            .filter_by(transaction_id=transaction.id)
+            .all()
+        }
+        for action in expected_actions - existing_actions:
+            record_transaction_actor(
+                transaction=transaction,
+                action=action,
+                actor_user_id=transaction.created_by,
+                occurred_at=transaction.created_at,
+            )
+
+
+def register_transaction(
+    *,
+    child_id: int,
+    kind: str,
+    amount: Decimal,
+    description: str,
+    created_by: int | None,
+    actor_username: str | None = None,
+    actor_role: str | None = None,
+    additional_actor_actions: tuple[str, ...] = (),
+) -> Transaction:
+    transaction = Transaction(
+        child_id=child_id,
+        kind=kind,
+        amount=amount,
+        description=description,
+        created_by=created_by,
+    )
+    db.session.add(transaction)
+    db.session.flush()
+    for action in ("created", *additional_actor_actions):
+        record_transaction_actor(
+            transaction=transaction,
+            action=action,
+            actor_user_id=created_by,
+            actor_username=actor_username,
+            actor_role=actor_role,
+        )
+    return transaction
 
 
 def send_web_push_notification(*, user_id: int, title: str, message: str, url: str = "/dashboard"):
@@ -344,6 +462,8 @@ def process_recurring_movements():
             amount=signed,
             description=item.description,
             created_by=item.created_by,
+            actor_username=item.created_by_username,
+            actor_role=item.created_by_role,
         )
         create_notification(
             user_id=item.child_id,
