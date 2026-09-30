@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/nocona71/pocketkid/compare/fork-v0.2.3...fork-v0.2.4) (2026-09-30)
+
+
+### Bug Fixes
+
+* complete withdrawal flow test coverage ([#44](https://github.com/nocona71/pocketkid/issues/44)) ([91fb267](https://github.com/nocona71/pocketkid/commit/91fb2675228427340da622d34a210a573b50951d))
+
 ## [0.2.3](https://github.com/nocona71/pocketkid/compare/fork-v0.2.2...fork-v0.2.3) (2026-09-30)
 
 
