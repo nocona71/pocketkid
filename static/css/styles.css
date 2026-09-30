@@ -326,6 +326,51 @@ select {
   background: #fecaca;
 }
 
+.badge.neutral {
+  background: #dbe3f0;
+}
+
+.transaction-list-item {
+  gap: 12px;
+}
+
+.detail-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-row dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.detail-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.audit-event {
+  gap: 3px;
+}
+
+.audit-event p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .request-item {
   display: grid;
   grid-template-columns: 1fr auto;
