@@ -920,13 +920,13 @@ def register_routes(app):
         user = current_user()
         mark_read = request.args.get("mark_read") == "1"
         unread = Notification.query.filter_by(user_id=user.id, is_read=False).order_by(Notification.created_at.desc()).all()
+        visible_notifications = unread[:PAGE_SIZE]
 
         if mark_read:
             for n in unread:
                 n.is_read = True
             db.session.commit()
 
-        recent = Notification.query.filter_by(user_id=user.id).order_by(Notification.created_at.desc()).limit(PAGE_SIZE).all()
         unread_count = Notification.query.filter_by(user_id=user.id, is_read=False).count()
         items = [
             {
@@ -936,7 +936,7 @@ def register_routes(app):
                 "is_read": n.is_read,
                 "created_at": format_datetime(n.created_at),
             }
-            for n in recent
+            for n in visible_notifications
         ]
 
         return {"items": items, "unreadCount": unread_count}
