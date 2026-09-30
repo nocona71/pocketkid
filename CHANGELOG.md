@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/nocona71/pocketkid/compare/fork-v0.3.0...fork-v0.4.0) (2026-09-30)
+
+
+### Features
+
+* add transaction and request detail views ([#52](https://github.com/nocona71/pocketkid/issues/52)) ([6cebb74](https://github.com/nocona71/pocketkid/commit/6cebb7416d8faa747550abc3791eadf1e696cae1))
+* record immutable transaction actors ([#50](https://github.com/nocona71/pocketkid/issues/50)) ([7dc2dc9](https://github.com/nocona71/pocketkid/commit/7dc2dc918c735a8d90804f13c554207c9f16a085))
+
 ## [0.3.0](https://github.com/nocona71/pocketkid/compare/fork-v0.2.4...fork-v0.3.0) (2026-09-30)
 
 
