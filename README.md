@@ -368,6 +368,7 @@ Notes:
 - `VERSION` → fork release version
 - `docs/decisions/0002-family-ledger-product-model.md` → product model and terminology
 - `docs/RELEASING.md` → release and container publishing process
+- `docs/upstream-pull-requests.md` → preparing focused contributions for upstream
 - `Dockerfile`, `docker-compose.yml` → container setup
 
 ---
