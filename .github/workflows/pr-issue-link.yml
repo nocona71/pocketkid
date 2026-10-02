@@ -1,0 +1,60 @@
+name: PR Issue Link Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-linked-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout pull request diff
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure PR body references an issue
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          body="${PR_BODY:-}"
+          labels="${PR_LABELS:-}"
+
+          if printf '%s' "$labels" | grep -Eiq 'type:maintenance|documentation'; then
+            echo "Skipping issue-link check for maintenance or documentation PR."
+            exit 0
+          fi
+
+          if [ -n "$labels" ] && ! printf '%s' "$labels" | grep -Eiq 'type:feature|type:bug'; then
+            echo "Skipping issue-link check for non-feature/bug PR."
+            exit 0
+          fi
+
+          if [ -n "${BASE_SHA:-}" ] && [ -n "${HEAD_SHA:-}" ]; then
+            changed_files="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
+            if [ -n "$changed_files" ] && ! printf '%s\n' "$changed_files" | grep -qvE '^(docs/|README|CHANGELOG|\.github/ISSUE_TEMPLATE/|.*\.md$)'; then
+              echo "This PR changes non-doc files; issue linkage is required."
+            else
+              echo "Skipping issue-link check for doc-only PR."
+              exit 0
+            fi
+          fi
+
+          if printf '%s' "$body" | grep -Eiq 'Closes #[0-9]+|Fixes #[0-9]+|Resolves #[0-9]+'; then
+            echo "PR references an issue via GitHub closing syntax."
+            exit 0
+          fi
+
+          echo "This PR must reference a GitHub issue using one of: Closes #NNN, Fixes #NNN, Resolves #NNN" >&2
+          exit 1

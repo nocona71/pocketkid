@@ -7,3 +7,6 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     git \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt requirements-dev.txt /tmp/pocketkid/
+RUN python -m pip install --no-cache-dir -r /tmp/pocketkid/requirements-dev.txt

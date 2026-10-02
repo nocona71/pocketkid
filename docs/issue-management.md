@@ -6,30 +6,32 @@ its live state.
 
 ## Sources of truth
 
+The repository keeps durable product intent in files and live plan/status in GitHub.
+
 | Information | Source of truth |
 | --- | --- |
 | Product boundaries and non-goals | `docs/project-scope.md` |
 | Product model and preferred terminology | `docs/decisions/0002-family-ledger-product-model.md` |
-| Stable feature IDs and intended outcomes | `docs/backlog.md` |
+| Stable feature IDs and intended outcomes | GitHub Issues |
 | Product and architecture decisions | `docs/decisions/` |
 | Work status, discussion, and ownership | GitHub Issues |
 | Prioritization and delivery view | [PocketKid Fork GitHub Project](https://github.com/users/nocona71/projects/2) |
 | Implementation and review | Pull requests |
 | Released behavior | `README.md` and `CHANGELOG.md` |
 
-Do not maintain live issue status in `docs/backlog.md`. Closed and reopened
-state belongs to GitHub so it cannot drift from the work item. Completed issues
-remain closed and searchable rather than being copied into a second "done"
-list.
+GitHub Issues are the live source of truth for status, ownership, discussion,
+reopened items, and completion. Do not duplicate live issue state elsewhere in
+repository files. Completed issues remain closed and searchable rather than being
+copied into a second "done" list.
 
 ## Backlog identifiers
 
 Features use stable IDs in the form `PK-NNN`. Put the ID at the start of every
-backlog issue title, for example `[PK-028] Editable transaction date`. IDs are
-never reused, even if an item is closed as not planned.
+issue title, for example `[PK-028] Editable transaction date`. IDs are never
+reused, even if an item is closed as not planned.
 
-Newly accepted ideas receive the next ID and are added to both the catalog and
-GitHub. Reports that do not represent cataloged product work, such as a narrow
+Newly accepted ideas receive the next ID and are created directly in GitHub.
+Reports that do not represent product work tracked in issues, such as a narrow
 regression, do not require a `PK-NNN` ID.
 
 ## Labels and priority
@@ -48,7 +50,8 @@ Use labels for classification, not workflow state. The GitHub Project's
 `Priority` single-select field is the source of truth for operational priority
 and supports grouping, filtering, and sorting. Its values are `P0`, `P1`,
 `P2`, and `P3`. The Project's `Status` field tracks Todo, In Progress, and
-Done.
+Done. In other words: durable product intent lives in the repository documents;
+live execution state lives in GitHub Issues and the Project board.
 
 Add `Size` or `Target` Project fields only when the team actively uses them;
 do not duplicate these properties as labels.
@@ -70,7 +73,7 @@ GitHub rather than only mentioning them in prose.
 
 ## Workflow
 
-1. Search existing issues and the feature catalog before opening an item.
+1. Search existing issues before opening a new item.
 2. Capture new reports through an issue form and assign the appropriate type
    label.
 3. Triage the outcome, acceptance criteria, priority, and dependencies.
@@ -82,7 +85,10 @@ GitHub rather than only mentioning them in prose.
    `master`.
 7. Link the pull request with `Closes #NNN` so GitHub closes the issue when the
    change merges.
-8. Close historical items as completed only after recording evidence such as a
+8. Every PR for a bug fix or feature change must reference at least one issue
+   using GitHub closing syntax such as `Closes #NNN`, `Fixes #NNN`, or
+   `Resolves #NNN`.
+9. Close historical items as completed only after recording evidence such as a
    commit, test, or current implementation reference.
 
 ## Definition of done
@@ -95,7 +101,7 @@ remaining gap described.
 
 ## Maintenance cadence
 
-Review the backlog before planning a delivery slice and after each release.
+Review the open issues before planning a delivery slice and after each release.
 Close duplicates and obsolete items with a reason, reconsider stale priorities,
 and split oversized work. Avoid adding recurring allowance automation unless a
 new product decision explicitly brings it into scope.

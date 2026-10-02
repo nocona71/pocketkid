@@ -25,12 +25,13 @@ intentionally omitted for `0.x` because minor releases may still be breaking.
 
 ## Automated checks
 
-Every pull request to `master`, and every push to `master`, runs:
+Whenever a GitHub Pull Request targets this fork's `master` branch, and whenever a commit is pushed to this fork's `master`, the fork's CI workflow runs:
 
 1. the Python test suite;
 2. a Docker image build;
-3. a smoke test that starts Gunicorn from the image and checks the HTTP
-   response.
+3. a smoke test that starts Gunicorn from the image and checks the HTTP response.
+
+A cross-repository pull request targeting `pernastefano/pocketkid:master` is governed by the upstream repository's workflows and does not trigger this fork's `pull_request` workflow.
 
 Publishing a GitHub Release runs the checks again before the image is pushed.
 The release workflow also verifies that:
