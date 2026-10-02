@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.3](https://github.com/nocona71/pocketkid/compare/fork-v0.8.2...fork-v0.8.3) (2026-10-02)
+
+
+### Bug Fixes
+
+* enhance devcontainer configuration to persist SSH and GitHub CLI settings ([#88](https://github.com/nocona71/pocketkid/issues/88)) ([6906880](https://github.com/nocona71/pocketkid/commit/6906880b36b25b5465c940d9e564e72c9937ca8e))
+* persist chat and shell history in development container ([#86](https://github.com/nocona71/pocketkid/issues/86)) ([5757485](https://github.com/nocona71/pocketkid/commit/57574854a2ed34aead443a64e9f1d670f95765e9))
+
 ## [0.8.2](https://github.com/nocona71/pocketkid/compare/fork-v0.8.1...fork-v0.8.2) (2026-10-02)
 
 
