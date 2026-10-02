@@ -5,6 +5,7 @@
     "context": ".."
   },
   "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:2": {
       "version": "lts"
     },
@@ -13,11 +14,13 @@
   "workspaceFolder": "/workspace/pocketkid",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/pocketkid,type=bind",
   "mounts": [
-  "source=pocketkid-bash-history,target=/home/vscode/.bash-history,type=volume",
-  "source=pocketkid-vscode-user-data,target=/home/vscode/.vscode-server/data/User,type=volume",
-  "source=pocketkid-copilot-sessions,target=/home/vscode/.vscode-server/data/agentSessionData,type=volume",
-  "source=pocketkid-copilot-chats,target=/home/vscode/.copilot/chats,type=volume",
-  "source=pocketkid-copilot-session-state,target=/home/vscode/.copilot/session-state,type=volume"
+    "source=pocketkid-bash-history,target=/home/vscode/.bash-history,type=volume",
+    "source=pocketkid-vscode-user-data,target=/home/vscode/.vscode-server/data/User,type=volume",
+    "source=pocketkid-copilot-sessions,target=/home/vscode/.vscode-server/data/agentSessionData,type=volume",
+    "source=pocketkid-copilot-chats,target=/home/vscode/.copilot/chats,type=volume",
+    "source=pocketkid-copilot-session-state,target=/home/vscode/.copilot/session-state,type=volume",
+    "source=pocketkid-gh-config,target=/home/vscode/.config/gh,type=volume",
+    "source=pocketkid-ssh,target=/home/vscode/.ssh,type=volume"
   ],
   "forwardPorts": [
     8000
@@ -36,6 +39,7 @@
     }
   },
   "remoteUser": "vscode",
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.config/gh && chmod 700 /home/vscode/.config/gh",
   "remoteEnv": {
     "HISTFILE": "/home/vscode/.bash-history/history"
   }

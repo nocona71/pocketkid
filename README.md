@@ -171,6 +171,39 @@ python app.py
 
 Coverage is a local development report; CI does not enforce a coverage threshold.
 
+### Docker in the Dev Container
+
+The Dev Container uses the Dev Containers **Docker-outside-of-Docker** feature.
+It installs the Docker CLI in the container and connects it to the Docker
+engine on the host; it does not run a separate Docker daemon inside the
+container. This lets `make smoke` build and run the application image without
+installing Docker tooling separately in the Dev Container.
+
+After changing the feature configuration, run **Dev Containers: Rebuild
+Container**, then verify the connection with:
+
+```bash
+docker info
+make smoke
+```
+
+The Docker engine must be available on the machine running the Dev Container.
+Commands issued by the container control that engine, so treat Docker access
+as highly privileged: only use it with trusted repository code and do not
+expose the Docker socket to untrusted containers or processes.
+
+GitHub CLI authentication is stored in the persistent `gh` config volume.
+Authenticate from a Dev Container terminal with `gh auth login`; do not pass
+`GH_TOKEN` through the host environment when using this login. The container
+repairs ownership of the mounted config volume after creation, including
+volumes created before this ownership fix.
+SSH keys are stored in a separate persistent volume mounted at `~/.ssh`.
+Treat both volumes as sensitive because they contain GitHub credentials and
+private keys. A key generated before this volume is first mounted is not copied
+into it; after rebuilding, create and upload a key with `ssh-keygen` and
+`gh ssh-key add ~/.ssh/id_ed25519.pub --title pocketkid-devcontainer` if SSH
+authentication is not available.
+
 ## Pull request and issue workflow
 
 - Create feature and bug-fix branches from `master`.

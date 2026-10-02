@@ -70,6 +70,7 @@ for _ in {1..30}; do
     'import http.client; connection = http.client.HTTPConnection("127.0.0.1", 8000, timeout=2); connection.request("GET", "/"); print(connection.getresponse().status)' \
     2>/dev/null || true)"
   if [[ "$status" == "302" ]]; then
+    echo "Container smoke test passed (HTTP 302)"
     exit 0
   fi
   sleep 1
