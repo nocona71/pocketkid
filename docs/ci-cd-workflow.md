@@ -291,11 +291,16 @@ The current release automation is defined in [release-please.yml](../.github/wor
 ### Release policy
 
 - feature PRs do not directly edit `VERSION`
-- release PRs are created by release-please
-- merge of the release PR creates the GitHub Release and tag
-- the image publication workflow runs after the release is created
+- each push to `master` runs CI and starts Release Please's commit evaluation
+- release-worthy Conventional Commit subjects cause Release Please to create or update a release PR; other or unparseable subjects may result in no release PR, while the workflow still succeeds
+- merge of a release PR creates the GitHub Release and tag, then calls the image publication workflow
+- manually publishing a valid stable GitHub Release also triggers image publication
+- ordinary pushes do not directly publish images
 
-This is the right separation of concerns.
+The commit subject on `master` is what matters to Release Please. For squash
+merges, use a Conventional Commit as the PR title so that it becomes the
+resulting commit subject. See [RELEASING.md](./RELEASING.md) for the trigger
+matrix and supported release commit types.
 
 ---
 
@@ -361,9 +366,9 @@ gh pr merge --squash --delete-branch
 
 ```bash
 gh release view
-# release-please creates version PR
-# merge release PR
-# workflow builds and publishes tested image
+# merge a release-worthy change to master; CI runs and Release Please evaluates it
+# if the change is release-worthy, review and merge the Release Please PR
+# that merge creates the GitHub Release and triggers tested image publication
 ```
 
 This is intentionally simple and matches the actual strengths of the repo.

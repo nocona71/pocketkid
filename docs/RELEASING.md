@@ -28,7 +28,7 @@ intentionally omitted for `0.x` because minor releases may still be breaking.
 Whenever a GitHub Pull Request targets this fork's `master` branch, and whenever a commit is pushed to this fork's `master`, the fork's CI workflow runs:
 
 1. the Python test suite;
-2. a Docker image build;
+2. a temporary Docker image build;
 3. a smoke test that starts Gunicorn from the image and checks the HTTP response.
 
 A cross-repository pull request targeting `pernastefano/pocketkid:master` is governed by the upstream repository's workflows and does not trigger this fork's `pull_request` workflow.
@@ -51,18 +51,37 @@ The same checks can be run locally:
 ./scripts/container-smoke --build
 ```
 
+## What triggers what
+
+| Event or change | CI | GitHub release | GHCR image |
+| --- | --- | --- | --- |
+| Pull request opened or updated for `master` | Runs | No | No |
+| Any commit pushed to `master` | Runs; Release Please also evaluates the commits | Only if a release PR is subsequently merged | Only after a release is created |
+| Release-worthy Conventional Commit subject merged to `master` | Runs | Release Please opens or updates a release PR; merging it creates the release | Published after the release is created |
+| Non-release commit or unparseable commit subject pushed to `master` | Runs | No release PR from that commit | No image |
+| Stable GitHub Release published manually | Release checks run | Already published manually | Published if tag and version validation passes |
+| Release Please workflow manually dispatched | Release Please evaluates commits | Only if it creates a release PR that is later merged | Only after a release is created |
+
+There is no separate automatic image build for every push to `master`: a release must be created first. A successful Release Please workflow run does not necessarily mean a release PR was created; it can finish successfully after finding no release-worthy commits. In that case, regular CI still runs, but no release or image is produced.
+
 ## Prepare a release
 
-Feature branches should use Conventional Commit subjects. In particular:
+Use Conventional Commit subjects on the commit that lands on `master`. With
+squash merging, set the pull request title to that subject; with another merge
+method, make sure the resulting commit subject follows the same format. A
+subject such as `docs/upstream pr workflow` is not parseable and will not
+trigger a release. In particular:
 
-- `fix:` produces a patch release;
-- `feat:` produces a minor release;
-- a breaking-change marker produces a major release.
+- `fix: ...` produces a patch release;
+- `feat: ...` produces a minor release;
+- a `BREAKING CHANGE:` footer or `!` marker produces a major release;
+- documentation, maintenance, and other commits without a release-worthy type
+  do not trigger a release.
 
-After changes are merged into `master`, Release Please creates or updates a
-release pull request containing the next `VERSION` and `CHANGELOG.md`.
-Review and merge that pull request when the accumulated changes should be
-released. Do not update `VERSION` in ordinary feature pull requests.
+After release-worthy changes are merged into `master`, Release Please creates
+or updates a release pull request containing the next `VERSION` and
+`CHANGELOG.md`. Review and merge that pull request when the accumulated changes
+should be released. Do not update `VERSION` in ordinary feature pull requests.
 
 ## Publish a release
 
