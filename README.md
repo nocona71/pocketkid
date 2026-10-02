@@ -79,7 +79,7 @@ cp .env.example .env
 # edit .env with VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY (or VAPID_PRIVATE_KEY_B64)
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 python app.py
 ```
 
@@ -143,6 +143,48 @@ The default compose file:
 - persists app data in `./data`
 - restarts container automatically (`unless-stopped`)
 - supports optional `PUID`/`PGID` to run the container as a specific host UID/GID (default `1000:1000`)
+
+---
+
+# Development workflow
+
+This project is developed in the devcontainer and validated through GitHub Actions.
+
+## Local workflow
+
+```bash
+make test
+make coverage
+make smoke
+make dev
+```
+
+The equivalent direct commands are:
+
+```bash
+./scripts/check
+python -m coverage run --source=pocketkid -m unittest discover -s tests
+python -m coverage report -m
+./scripts/container-smoke --build
+python app.py
+```
+
+Coverage is a local development report; CI does not enforce a coverage threshold.
+
+## Pull request and issue workflow
+
+- Create feature and bug-fix branches from `master`.
+- Open PRs through GitHub or the `gh` CLI.
+- Feature and bug-fix PRs must reference at least one GitHub issue using closing syntax, for example:
+
+```text
+Closes #123
+```
+
+- Doc-only and maintenance PRs are exempt from the issue-link requirement.
+- GitHub Issues remain the live source of truth for status, ownership, and discussion.
+
+This keeps issue tracking, implementation work, and release validation linked in a simple GitHub-native flow.
 
 ---
 
@@ -368,6 +410,7 @@ Notes:
 - `VERSION` → fork release version
 - `docs/decisions/0002-family-ledger-product-model.md` → product model and terminology
 - `docs/RELEASING.md` → release and container publishing process
+- `docs/upstream-pull-requests.md` → preparing focused contributions for upstream
 - `Dockerfile`, `docker-compose.yml` → container setup
 
 ---
