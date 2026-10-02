@@ -12,6 +12,13 @@
   },
   "workspaceFolder": "/workspace/pocketkid",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/pocketkid,type=bind",
+  "mounts": [
+  "source=pocketkid-bash-history,target=/home/vscode/.bash-history,type=volume",
+  "source=pocketkid-vscode-user-data,target=/home/vscode/.vscode-server/data/User,type=volume",
+  "source=pocketkid-copilot-sessions,target=/home/vscode/.vscode-server/data/agentSessionData,type=volume",
+  "source=pocketkid-copilot-chats,target=/home/vscode/.copilot/chats,type=volume",
+  "source=pocketkid-copilot-session-state,target=/home/vscode/.copilot/session-state,type=volume"
+  ],
   "forwardPorts": [
     8000
   ],
@@ -19,12 +26,17 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "donjayamanne.githistory",
+        "mhutchie.git-graph"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python"
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
       }
     }
   },
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "HISTFILE": "/home/vscode/.bash-history/history"
+  }
 }
