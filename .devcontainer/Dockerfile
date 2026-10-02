@@ -17,10 +17,15 @@ RUN mkdir -p \
         /home/vscode/.vscode-server/data/agentSessionData \
         /home/vscode/.copilot/chats \
         /home/vscode/.copilot/session-state \
+        /home/vscode/.config/gh \
+        /home/vscode/.ssh \
     && chown -R vscode:vscode \
         /home/vscode/.bash-history \
         /home/vscode/.vscode-server \
-        /home/vscode/.copilot
+        /home/vscode/.copilot \
+        /home/vscode/.config/gh \
+        /home/vscode/.ssh \
+    && chmod 700 /home/vscode/.ssh
 
 RUN printf '\nshopt -s histappend\nPROMPT_COMMAND="history -a${PROMPT_COMMAND:+; $PROMPT_COMMAND}"\n' \
     >> /home/vscode/.bashrc
