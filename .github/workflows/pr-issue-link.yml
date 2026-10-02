@@ -43,7 +43,7 @@ jobs:
 
           if [ -n "${BASE_SHA:-}" ] && [ -n "${HEAD_SHA:-}" ]; then
             changed_files="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
-            if [ -n "$changed_files" ] && ! printf '%s\n' "$changed_files" | grep -qvE '^(docs/|README|CHANGELOG|\.github/ISSUE_TEMPLATE/|.*\.md$)'; then
+            if [ -n "$changed_files" ] && printf '%s\n' "$changed_files" | grep -qvE '^(docs/|README|CHANGELOG|\.github/ISSUE_TEMPLATE/|.*\.md$)'; then
               echo "This PR changes non-doc files; issue linkage is required."
             else
               echo "Skipping issue-link check for doc-only PR."
