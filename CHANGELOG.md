@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/nocona71/pocketkid/compare/fork-v0.8.1...fork-v0.8.2) (2026-10-02)
+
+
+### Bug Fixes
+
+* update dependabot configuration and refine PR issue link check logic ([#77](https://github.com/nocona71/pocketkid/issues/77)) ([3180fba](https://github.com/nocona71/pocketkid/commit/3180fba1adbe7fdf2c607dd404f7af2d251ec39f))
+
 ## [0.8.1](https://github.com/nocona71/pocketkid/compare/fork-v0.8.0...fork-v0.8.1) (2026-09-30)
 
 
